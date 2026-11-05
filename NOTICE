@@ -33,8 +33,18 @@ artur_studio_tts
   Card tagged cc-by-3.0; treated here as CC BY-SA 4.0 because it derives from
   ARTUR 1.0. See LICENSE-MODELS.md.
 
-RSDO-DS2-NORM / RSDO-DS2-DENORM  (optional normalisation service only)
-  http://hdl.handle.net/11356/1742  and  http://hdl.handle.net/11356/1743
+Slovene Text Denormalizator RSDO-DS2-DENORM 1.0  (bundled, optional)
+  Jelovsek, Tjasa; Lebar Bajec, Iztok; Bajec, Marko; Bajec, Zan; Cvek, Jernej,
+  2022, Faculty of Computer and Information Science, University of Ljubljana.
+  http://hdl.handle.net/11356/1743
+  https://github.com/clarinsi/Slovene_denormalizator
+  Licence: Apache License 2.0
+  Distributed as the release asset slovene-denormalizer.tar (md5
+  53a4894927e9b29d02c30efa729286b2), converts spoken-form ASR output to
+  written form. Depends on nltk (Apache 2.0) and flask (BSD).
+
+RSDO-DS2-NORM  (optional TTS normalisation service, not bundled)
+  http://hdl.handle.net/11356/1742
   Licence: Apache License 2.0
 
 ===============================================================================

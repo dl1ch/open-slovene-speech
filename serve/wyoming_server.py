@@ -38,6 +38,12 @@ from wyoming.tts import Synthesize
 
 _LOGGER = logging.getLogger("slovene-wyoming")
 
+# Numbers leave the model as words; denormalise to written form.
+import sys as _sys
+_sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))), "stt"))
+from denormalize import denormalize as _denormalize
+
 # CC BY-SA 4.0: the attribution has to travel with the model, including here,
 # where Home Assistant surfaces it in the UI.
 ATTR = Attribution(
@@ -118,7 +124,8 @@ class SloveneHandler(AsyncEventHandler):
 
     def _transcribe(self, buf):
         segments, _ = self.asr.transcribe(buf, language="sl", beam_size=self.beam)
-        return " ".join(s.text.strip() for s in segments).strip()
+        text = " ".join(s.text.strip() for s in segments).strip()
+        return _denormalize(text)
 
 
 def build_info(tts: bool, stt: bool) -> Info:

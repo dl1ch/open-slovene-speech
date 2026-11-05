@@ -24,3 +24,6 @@ faster-whisper>=1.2.1
 av>=11,<19
 onnxruntime>=1.31.1
 numpy>=2.5.4
+# RSDO denormaliser (optional ASR post-processing, Apache 2.0)
+nltk>=3.8
+flask-restx>=1.3

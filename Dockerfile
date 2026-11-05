@@ -38,7 +38,8 @@ ENV PYTHONPATH=/app/tts \
     SLOVENE_STT_MODEL=/models/slovene-whisper-ct2 \
     SLOVENE_STT_DEVICE=cpu \
     SLOVENE_STT_COMPUTE=int8 \
-    SLOVENE_NORMALIZE=0
+    SLOVENE_NORMALIZE=0 \
+    SLOVENE_DENORMALIZER_DIR=/models/slovene-denormalizer
 
 EXPOSE 8080 10200
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \

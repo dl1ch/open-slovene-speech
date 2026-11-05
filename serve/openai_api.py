@@ -34,6 +34,12 @@ from fastapi.responses import JSONResponse, Response
 
 ENABLE_TTS = os.environ.get("SLOVENE_ENABLE_TTS", "1") != "0"
 ENABLE_STT = os.environ.get("SLOVENE_ENABLE_STT", "1") != "0"
+# Numbers leave the model as words; the wrapper turns them into written
+# form and is a no-op if the tool is not installed.
+import sys as _sys, os as _os
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.dirname(
+    _os.path.abspath(__file__))), "stt"))
+from denormalize import denormalize as _denormalize
 STT_MODEL = os.environ.get("SLOVENE_STT_MODEL", "/models/slovene-whisper-ct2")
 STT_DEVICE = os.environ.get("SLOVENE_STT_DEVICE", "cuda")
 STT_COMPUTE = os.environ.get("SLOVENE_STT_COMPUTE", "int8_float16")
@@ -139,7 +145,7 @@ async def transcriptions(
         # Whisper auto-detect on a short or noisy clip picks the wrong one.
         segments, _info = asr().transcribe(path, language=language or "sl",
                                            beam_size=STT_BEAM)
-        text = " ".join(s.text.strip() for s in segments).strip()
+        text = _denormalize(" ".join(s.text.strip() for s in segments).strip())
     finally:
         os.unlink(path)
 

@@ -30,25 +30,20 @@ comparison needs a corpus neither model trained on.
 
 ## 1. Speech recognition
 
-### 1.1 Written-form output (denormalisation) — now measured, and bigger than it looked
+### 1.1 Written-form output (denormalisation) — ✅ done
 
-Transcripts come out as spoken words: *"sedemindvajsetega devetega dva tisoč
-šestindvajset"* rather than *"27. 9. 2026"*. For subtitles, notes and documents
-this is the single most visible defect.
+Integrated. The servers run ASR output through RSDO-DS2-DENORM
+([11356/1743](http://hdl.handle.net/11356/1743), Apache 2.0), an 8.9 MB
+rule-based tool that turns *tisoč devetsto šestinšestdeset* into *1966*.
 
-**Measured cost on FLEURS:** 19% of utterances contain a digit in the
-reference, and on those our CER is 20.74% against stock's 7.09%. Excluding them
-our CER is 3.85% against 6.05% — better than stock. The convention alone
-accounts for 2,752 excess character edits against a net total of 904, so it is
-not a cosmetic issue: it reverses the apparent CER result and costs roughly 3.3
-points of overall CER.
+Measured on FLEURS, with denormalisation on: CER **7.12% → 4.55%** and WER
+**14.53% → 12.72%**, both now below stock Whisper (6.25% / 20.92%). On the 156
+digit-bearing utterances alone, CER went **20.74% → 6.49%**.
 
-- **What:** wire in RSDO-DS2-DENORM ([11356/1743](http://hdl.handle.net/11356/1743), Apache 2.0) as a post-processing stage.
-- **Effort:** 2–3 days. No retraining — it is a text-to-text step.
-- **Priority:** this is now the highest-value ASR item, ahead of 1.3. It needs
-  no GPU and would improve the headline CER more than any retrain.
-- **Note:** the inverse (NORM) is already used by the TTS side, so the
-  dependency is understood.
+On by default in both servers and `stt/transcribe.py`; a no-op if the tool is
+not installed. `--raw` / `SLOVENE_DENORMALIZE=0` turns it off.
+
+Remaining: it is tuned for formal text, so conversational output is uncharacterised.
 
 ### 1.2 Punctuation and casing
 

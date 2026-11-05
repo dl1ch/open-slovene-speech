@@ -179,41 +179,36 @@ So the fine-tune does generalise, but the honest figure is **30.5%**, not the
 57.8% the in-domain comparison suggests. Both numbers are real; they measure
 different things.
 
-#### The CER caveat, and why it is not what it looks like
+#### Numbers: words vs digits, and why the servers now fix it
 
-On that same set our CER is *worse* — 7.12% against 6.25% — while WER is far
-better. The cause is a transcription convention, not an error:
+Raw, this model writes numbers as words, because ARTUR transcribes them that way;
+FLEURS uses digits. So on the first pass our CER *looked* worse than stock —
+7.12% against 6.25% — while WER was far better:
 
 ```
 reference   802 11a 802 11b            1966
-ours        osemsto dva pika enajst a  tisoč devetsto šestinšestdeset
-stock       802 11a 802 11b            1966
+raw model   osemsto dva pika enajst a  tisoč devetsto šestinšestdeset
 ```
 
-**ARTUR transcribes numbers as words, so the model learned to write them that
-way.** FLEURS uses digits. Every number therefore scores as a long run of
-character errors for us and none for stock. Splitting the set on whether the
-reference contains a digit:
+This is a transcription convention, not an error, and the servers in `serve/`
+now undo it. They run the ASR output through **RSDO-DS2-DENORM** (CLARIN.SI,
+Apache 2.0), which turns *tisoč devetsto šestinšestdeset* back into *1966*.
+Measured on the same 834 utterances, with denormalisation on:
 
-| subset | our WER | our CER | stock WER | stock CER |
-|---|---|---|---|---|
-| all 834 | 14.53% | 7.12% | 20.92% | 6.25% |
-| references **with** digits (19%) | 24.79% | 20.74% | 20.34% | 7.09% |
-| references **without** digits (81%) | **11.92%** | **3.85%** | 21.07% | 6.05% |
+| | stock large-v3 | raw model | **model + denorm** |
+|---|---|---|---|
+| WER | 20.92% | 14.53% | **12.72%** |
+| CER | 6.25% | 7.12% | **4.55%** |
 
-On 81% of the set our CER is **better than stock, not worse**. The digit-bearing
-utterances contribute 2,752 excess character edits against a net total of 904 —
-the convention mismatch was hiding an advantage of 1,848 edits everywhere else.
+So with the default pipeline this model is **better than stock on both metrics**,
+out of domain. Denormalisation is on by default in both servers and in
+`stt/transcribe.py` (`--raw` or `SLOVENE_DENORMALIZE=0` to turn it off), and it
+is a no-op if the 8.9 MB tool is not installed.
 
-This was checked for the alternative explanations first. Empty outputs: 0 for
-both. Runaway output: 4 for both. Truncation: 2 for both. A sweep of
-`condition_on_previous_text=False` and `vad_filter=True` moved WER by at most
-0.13 points, so it is not a decoding problem either.
-
-**The practical consequence:** if you need written-form numbers, run a
-denormaliser over the output — RSDO-DS2-DENORM, Apache 2.0, see
-[docs/ROADMAP.md](docs/ROADMAP.md) 1.1. Without one, expect `1966` to come out
-as *tisoč devetsto šestinšestdeset*, which is what was said.
+The alternative explanations were ruled out first, not assumed: empty outputs 0
+for both models, runaway output 4 for both, truncation 2 for both, and a sweep
+of `condition_on_previous_text` and `vad_filter` moved WER by at most 0.13
+points.
 
 ### Text to speech
 
@@ -468,8 +463,8 @@ them.
 | **ARTUR 1.0 (transcriptions)** | ASR targets | CC BY-SA 4.0 | no |
 | **`artur_studio_tts`** | TTS training data, 40 h, 1 speaker | tagged CC BY 3.0, derives from CC BY-SA 4.0 | no |
 | **Sloleks 3.1** | pronunciation lexicon, 2.9 M forms | CC BY-SA 4.0 | **yes** — in the TTS bundle |
-| **RSDO-DS2-NORM** | digit/date → spoken form | Apache 2.0 | no — optional service |
-| **RSDO-DS2-DENORM** | spoken → written form | Apache 2.0 | not yet used (see roadmap) |
+| **RSDO-DS2-NORM** | digit/date → spoken form (TTS) | Apache 2.0 | no — optional service |
+| **RSDO-DS2-DENORM** | spoken → written form (ASR) | Apache 2.0 | **yes** — bundled, 8.9 MB |
 | **whisper-large-v3** | ASR base model | MIT | as a fine-tuned derivative |
 | **Piper / VITS** | TTS architecture + training code | MIT | `ids.py` logic reproduced |
 | **faster-whisper / CTranslate2** | ASR inference runtime | MIT | no — pip dependency |
@@ -545,9 +540,8 @@ Published, suitable, and on the roadmap rather than in the models:
 |---|---|---|
 | **SNES 1.0** ([11356/2003](http://hdl.handle.net/11356/2003)) | stress for out-of-vocabulary words, the 1.34% espeak currently guesses at | CC BY-SA 4.0 |
 | **ILS 1.0** ([11356/2025](http://hdl.handle.net/11356/2025)) | pre-consonantal *l* — /l/ versus /u̯/ | CC BY-SA 4.0 |
-| **RSDO-DS2-DENORM** ([11356/1743](http://hdl.handle.net/11356/1743)) | ASR output in written form — digits, dates, abbreviations | Apache 2.0 |
 
-All three were located by harvesting the CLARIN.SI catalogue over OAI-PMH.
+Both were located by harvesting the CLARIN.SI catalogue over OAI-PMH.
 A practical note for anyone else searching it: **CLARIN.SI records are
 catalogued in English only**, so Slovene keyword searches return almost nothing.
 
@@ -580,10 +574,11 @@ See **[docs/ROADMAP.md](docs/ROADMAP.md)** for the full list with rationale. The
 items most likely to matter:
 
 - **Evaluate on a corpus neither model was trained on.** Every number in this
-  README is in-domain against ARTUR. Until that is done, the comparison against
-  stock Whisper flatters this model.
-- **Written-form ASR output** via RSDO-DS2-DENORM — digits, dates and
-  abbreviations currently come out as spoken words.
+  README is in-domain against ARTUR; the out-of-domain FLEURS numbers (now in
+  Results) are the honest comparison, and with denormalisation this model is
+  ahead of stock on both WER and CER there.
+- ~~Written-form ASR output via RSDO-DS2-DENORM~~ — **done**, on by default;
+  FLEURS CER 7.12% → 4.55%.
 - **Multi-speaker TTS.** ARTUR has many speakers; only one was used.
 - **Lift the 46-phoneme ceiling**, which is what currently makes faithful
   English impossible in the voice.

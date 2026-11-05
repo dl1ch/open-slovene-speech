@@ -288,6 +288,8 @@ the 2 GB the CTranslate2 build needs.
 | `SLOVENE_STT_DEVICE` | `cuda` | `cpu` works, roughly realtime |
 | `SLOVENE_STT_COMPUTE` | `int8_float16` | use `int8` on CPU |
 | `SLOVENE_STT_BEAM` | `2` | the measured knee |
+| `SLOVENE_DENORMALIZE` | `1` | `0` keeps ASR numbers as words |
+| `SLOVENE_DENORMALIZER_DIR` | `models/slovene-denormalizer` | the RSDO tool |
 | `SLOVENE_ENABLE_TTS` / `_STT` | `1` | run half the API only |
 
 ### Digits

@@ -38,21 +38,17 @@ Beam 2 is the knee and is what the reference deployment uses.
 
 FLEURS Slovene, 834 read Wikipedia sentences neither model trained on:
 
-| | stock large-v3 | this model |
-|---|---|---|
-| WER | 20.92% | **14.53%** |
-| CER | 6.25% | 7.12% |
+| | stock large-v3 | raw model | model + denorm |
+|---|---|---|---|
+| WER | 20.92% | 14.53% | **12.72%** |
+| CER | 6.25% | 7.12% | **4.55%** |
 
-The WER gap is 30.5% relative — real generalisation, but about half the 57.8%
-the in-domain ARTUR comparison shows.
-
-**CER looks worse and is not.** This model writes numbers as words because
-ARTUR transcribes them that way; FLEURS uses digits. Excluding the 19% of
-utterances whose reference contains a digit, our CER is **3.85% against stock's
-6.05%** and WER is 11.92% against 21.07%. Empty, runaway and truncated output
-counts are identical to stock (0/0, 4/4, 2/2), and a decode-setting sweep moved
-WER by at most 0.13 points, so this is a convention difference rather than a
-decoding or stability problem.
+With denormalisation — on by default in the servers — this model beats stock on
+**both** metrics out of domain. Raw, CER looks worse because the model writes
+numbers as words (ARTUR's convention) where FLEURS uses digits; RSDO-DS2-DENORM
+converts them back and the apparent gap disappears. Empty, runaway and truncated
+output counts are identical to stock (0/0, 4/4, 2/2), so this was never a
+stability problem.
 
 ## Intended use
 

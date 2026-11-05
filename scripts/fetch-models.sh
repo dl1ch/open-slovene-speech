@@ -20,10 +20,13 @@ mkdir -p "$DEST"
 assets=()
 case "$WHAT" in
   tts) assets=(slovene-voice.tar.gz) ;;
-  stt) assets=(slovene-whisper-ct2.tar.gz) ;;
+  stt) assets=(slovene-whisper-ct2.tar.gz slovene-denormalizer.tar) ;;
   lora) assets=(slovene-whisper-lora.tar.gz) ;;
-  all) assets=(slovene-voice.tar.gz slovene-whisper-ct2.tar.gz) ;;
-  *) echo "usage: $0 [all|tts|stt|lora]" >&2; exit 2 ;;
+  denorm) assets=(slovene-denormalizer.tar) ;;
+  # stt pulls the denormaliser too: it is 8.9 MB and turns spoken-form numbers
+  # into written form, which is what most ASR uses want.
+  all) assets=(slovene-voice.tar.gz slovene-whisper-ct2.tar.gz slovene-denormalizer.tar) ;;
+  *) echo "usage: $0 [all|tts|stt|lora|denorm]" >&2; exit 2 ;;
 esac
 
 fetch () {
@@ -84,8 +87,18 @@ fi
 
 echo "==> unpacking"
 for a in "${assets[@]}"; do
-  tar xzf "$DEST/$a" -C "$DEST"
+  case "$a" in
+    *.tar.gz) tar xzf "$DEST/$a" -C "$DEST" ;;
+    *.tar)    tar xf  "$DEST/$a" -C "$DEST" ;;
+  esac
 done
+# The RSDO denormaliser extracts to Slovene_denormalizator-1.0/; the wrapper
+# looks for it as slovene-denormalizer/. Rename, and note the runtime deps.
+if [ -d "$DEST/Slovene_denormalizator-1.0" ]; then
+  rm -rf "$DEST/slovene-denormalizer"
+  mv "$DEST/Slovene_denormalizator-1.0" "$DEST/slovene-denormalizer"
+  echo "    denormaliser needs: pip install nltk flask flask_restx"
+fi
 
 cat <<EOF
 
