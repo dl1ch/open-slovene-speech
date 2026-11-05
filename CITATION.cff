@@ -1,0 +1,120 @@
+cff-version: 1.2.0
+message: >-
+  If you use these models, please cite the underlying corpora (ARTUR 1.0 and
+  Sloleks 3.1) as well as, or instead of, this repository. They are the
+  substantive contribution; this is a recipe and a set of weights built on them.
+title: "Slovene Speech: open TTS and ASR models for Slovene"
+abstract: >-
+  A Slovene text-to-speech voice (Piper/VITS, 22.05 kHz, lexicon-based
+  phonemizer) and a Slovene speech-recognition model (Whisper large-v3 with a
+  LoRA adapter, 7.77% WER against 18.41% for the stock model), trained on the
+  publicly available ARTUR 1.0 corpus and the Sloleks 3.1 morphological lexicon.
+type: software
+authors:
+  # CFF 'entity' form: a handle rather than a personal name.
+  - name: "dl1ch"
+    website: "https://github.com/dl1ch"
+license: MIT
+license-url: "https://github.com/dl1ch/slovene-speech/blob/main/LICENSE"
+repository-code: "https://github.com/dl1ch/slovene-speech"
+keywords:
+  - Slovene
+  - slovenščina
+  - speech recognition
+  - text-to-speech
+  - ASR
+  - TTS
+  - Whisper
+  - VITS
+  - low-resource languages
+references:
+  - type: data
+    title: "ASR database ARTUR 1.0 (audio)"
+    year: 2023
+    url: "http://hdl.handle.net/11356/1776"
+    publisher:
+      name: "Slovenian language resource repository CLARIN.SI"
+    license: CC-BY-SA-4.0
+    authors:
+      - family-names: Verdonik
+        given-names: Darinka
+      - family-names: Bizjak
+        given-names: Andreja
+      - family-names: Žgank
+        given-names: Andrej
+      - family-names: Bernjak
+        given-names: Mitja
+      - family-names: Antloga
+        given-names: Špela
+      - family-names: Majhenič
+        given-names: Simona
+      - family-names: Čakš
+        given-names: Peter
+      - family-names: Pucer
+        given-names: Matevž
+      - family-names: Cvetko
+        given-names: Mitja
+      - family-names: Zelenik
+        given-names: Marijana
+      - family-names: Pavlič
+        given-names: Jani
+      - family-names: Dobrišek
+        given-names: Simon
+      - family-names: Križaj
+        given-names: Janez
+      - family-names: Strle
+        given-names: Gregor
+      - family-names: Ivanovska
+        given-names: Marija
+      - family-names: Grm
+        given-names: Klemen
+      - family-names: Bajec
+        given-names: Marko
+      - family-names: Lebar Bajec
+        given-names: Iztok
+      - family-names: Jelovšek
+        given-names: Tjaša
+      - family-names: Lokovšek
+        given-names: Jure
+      - family-names: Longyka
+        given-names: Jure
+      - family-names: Trojar
+        given-names: Mitja
+      - family-names: Žganec Gros
+        given-names: Jerneja
+      - family-names: Mihelič
+        given-names: Aleš
+      - family-names: Vesnicer
+        given-names: Boštjan
+      - family-names: Dretnik
+        given-names: Naum
+      - family-names: Bordon
+        given-names: David
+  - type: data
+    title: "Morphological Lexicon of Slovene Sloleks 3.1"
+    year: 2026
+    url: "http://hdl.handle.net/11356/2080"
+    publisher:
+      name: "Slovenian language resource repository CLARIN.SI"
+    license: CC-BY-SA-4.0
+    authors:
+      - family-names: Čibej
+        given-names: Jaka
+      - family-names: Gantar
+        given-names: Kaja
+      - family-names: Dobrovoljc
+        given-names: Kaja
+      - family-names: Krek
+        given-names: Simon
+      - family-names: Holozan
+        given-names: Peter
+      - family-names: Erjavec
+        given-names: Tomaž
+      - family-names: Romih
+        given-names: Miro
+      - family-names: Arhar Holdt
+        given-names: Špela
+      - family-names: Krsnik
+        given-names: Luka
+      - family-names: Robnik-Šikonja
+        given-names: Marko

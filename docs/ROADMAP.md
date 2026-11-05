@@ -1,0 +1,262 @@
+# Roadmap
+
+What could be done next, why it matters, and roughly what it costs. Ordered by
+what would change the most for users, not by what is easiest.
+
+Effort is in person-days of focused work plus GPU time on a single V100-class
+card. "Blocked on" means it genuinely cannot start until that is resolved.
+
+---
+
+## 0. Honesty first: evaluate outside ARTUR
+
+**Status: the most important item here, and the one that could make the headline
+numbers look worse.**
+
+Every figure in this repository is measured on a held-out, speaker-disjoint
+split of ARTUR — the same corpus the model trained on. That is a legitimate
+measurement of in-domain performance and it is what the README says it is. But
+stock Whisper has never seen ARTUR, so **the 18.41% → 7.77% comparison partly
+measures domain adaptation rather than general Slovene ability**. A fair
+comparison needs a corpus neither model trained on.
+
+- **What:** evaluate both models on Slovene Common Voice, FLEURS, or a held-out
+  broadcast set. Publish whatever comes out, including a smaller gap.
+- **Effort:** 1–2 days, almost no GPU.
+- **Why it is first:** everything else is tuning a number nobody has verified
+  generalises.
+
+---
+
+## 1. Speech recognition
+
+### 1.1 Written-form output (denormalisation)
+
+Transcripts currently come out as spoken words: *"sedemindvajsetega devetega
+dva tisoč šestindvajset"* rather than *"27. 9. 2026"*. For subtitles, notes and
+documents this is the single most visible defect.
+
+- **What:** wire in RSDO-DS2-DENORM ([11356/1743](http://hdl.handle.net/11356/1743), Apache 2.0) as a post-processing stage.
+- **Effort:** 2–3 days. No retraining — it is a text-to-text step.
+- **Note:** the inverse (NORM) is already used by the TTS side, so the
+  dependency is understood.
+
+### 1.2 Punctuation and casing
+
+Related but separate: Whisper produces some punctuation, inconsistently, and
+ARTUR's transcription conventions are not subtitle conventions.
+
+- **Effort:** 3–5 days including evaluation. Could be folded into 1.1.
+
+### 1.3 Noise and far-field robustness
+
+Not a focus of the fine-tune. Augmenting training with noise, reverberation and
+codec artefacts is standard and would likely help real recordings more than any
+further in-domain tuning.
+
+- **What:** RIR + noise augmentation, re-run the LoRA fine-tune.
+- **Effort:** 2 days of work, ~22 GPU-hours per run.
+- **Measure it on 0** or the gain is unverifiable.
+
+### 1.4 Smaller and faster models
+
+large-v3 needs ~2 GB VRAM and a GPU for comfortable speed. Many uses would
+accept a few points of WER for CPU-realtime.
+
+- **What:** the same LoRA recipe on `medium` and `small`; also a distil-whisper
+  style student.
+- **Effort:** 1 day each plus GPU; the recipe is unchanged.
+- **Value:** this is what makes the model usable on a laptop or a Pi.
+
+### 1.5 whisper.cpp / GGML conversion
+
+CTranslate2 covers CUDA well. GGML would cover Apple Silicon and plain CPU, and
+is how most hobbyists would actually run this.
+
+- **Effort:** 1–2 days, mostly conversion and verification.
+- **Blocked on:** nothing.
+
+### 1.6 Streaming
+
+Everything here is batch. Real-time captioning needs chunked decoding with
+context carry-over.
+
+- **Effort:** 1–2 weeks, and it is a genuine engineering problem rather than a
+  training one.
+
+### 1.7 Dialect and speaker-group evaluation
+
+The model card says performance on strong regional dialect, children's speech,
+disordered speech and non-native speakers "has not been measured per group".
+That gap should be closed rather than left as a disclaimer.
+
+- **Blocked on:** finding or building labelled test sets. This is the kind of
+  thing a university group is better placed to do than an individual.
+
+---
+
+## 2. Text to speech
+
+### 2.1 Multi-speaker
+
+ARTUR contains many speakers; exactly one was used, because a clean 40 h studio
+subset existed for that one.
+
+- **What:** VITS multi-speaker training over a wider slice of ARTUR.
+- **Effort:** 1 week of data preparation, several days of GPU.
+- **Also fixes:** the single-voice limitation, and reduces the impersonation
+  concern that comes with one identifiable person's voice.
+
+### 2.2 Lift the 46-phoneme ceiling
+
+Over all 22,768 training utterances the model emitted exactly 46 distinct
+phonemes; 120 of the 166 `phoneme_id_map` entries were never trained, including
+every core English vowel and the English rhotic (ɹ æ ʊ ɚ ɑ ʌ ɜ ɐ θ ð). This is
+*the* reason faithful English is impossible, and no amount of front-end work
+fixes it — an untrained phoneme yields an artefact, not an accent.
+
+- **What:** include English or mixed-language speech in training so those
+  symbols get trained.
+- **Effort:** substantial — new data, full retrain.
+- **Honest view:** a Slovene-accented rendering of English is also what a
+  Slovene speaker produces, so this may not be worth the cost for most uses.
+
+### 2.3 Digits in training data
+
+ARTUR's TTS text contains no digits at all, so the voice has never seen one.
+Today that is handled by an external normaliser.
+
+- **What:** synthesise digit-bearing training text with the normaliser, so the
+  model learns the mapping directly.
+- **Effort:** 3–5 days plus a retrain.
+- **Value:** removes a ~5 GB dependency from the common path.
+
+### 2.4 Stress for out-of-vocabulary words
+
+Sloleks covers 98.66% of tokens. The remaining 1.34% — names, loanwords,
+neologisms — falls through to espeak, which is exactly the component known to
+stress ~74% of Slovene forms wrongly.
+
+- **What:** use **SNES 1.0** ([11356/2003](http://hdl.handle.net/11356/2003),
+  CC BY-SA 4.0), a dataset built for OOV stress prediction.
+- **Effort:** 3–5 days.
+- **Why it matters:** proper nouns are disproportionately OOV and
+  disproportionately noticed.
+
+### 2.5 Pre-consonantal *l*
+
+Slovene *l* before a consonant is often /u̯/, not /l/. **ILS 1.0**
+([11356/2025](http://hdl.handle.net/11356/2025), CC BY-SA 4.0) exists precisely
+for this distinction.
+
+- **Effort:** 2–3 days in the phonemizer. Cheap, and audible.
+
+### 2.6 Homograph disambiguation in the portable bundle
+
+Homographs are 0.7% of forms, and **87% are resolvable by morphosyntactic tag**.
+The full deployment resolves them with CLASSLA; the portable bundle does not,
+because CLASSLA costs ~5 GB.
+
+- **What:** a small tagger, or shipping the most common homographs with
+  context rules.
+- **Effort:** 1 week for something lightweight.
+
+### 2.7 Prosody beyond declarative
+
+The voice is trained on studio-read declarative speech. Questions, emphasis and
+long narration all sound flat.
+
+- **Effort:** open-ended. Needs expressive training data that does not currently
+  exist for Slovene in a free licence.
+
+---
+
+## 3. Packaging and reach
+
+### 3.1 Publish to Hugging Face
+
+A GitHub Release is not where people look for models.
+
+- **What:** model repos with cards, plus the CC BY-SA 4.0 terms and the full
+  ARTUR/Sloleks attribution carried over.
+- **Effort:** 1 day.
+- **Highest reach-per-hour item on this list.**
+
+### 3.2 Prebuilt container images — ✅ partly done
+
+`Dockerfile` and `docker-compose.yml` ship. What remains is publishing images to
+GHCR so nobody has to build locally, and adding a CUDA image for the recogniser.
+
+- **Effort:** half a day plus a release workflow.
+
+### 3.3 OpenAI-compatible and Wyoming endpoints — ✅ done
+
+`serve/openai_api.py` implements `/v1/audio/speech` and
+`/v1/audio/transcriptions`; `serve/wyoming_server.py` implements the Wyoming
+protocol for Home Assistant.
+
+Remaining: streaming synthesis over Wyoming (`supports_synthesize_streaming`),
+which would cut perceived latency in Assist pipelines on long replies.
+
+- **Effort:** 2–3 days.
+
+### 3.4 Get the phonemizer upstream — now has a precedent
+
+`PhonemeType.SLOVENE` does not exist in piper, so no piper-based stack can serve
+this voice: it refuses to load a `phoneme_type` it does not recognise.
+
+**This became much more tractable.** Upstream piper (now
+[OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl)) has grown its
+enum well past the original two values:
+
+```python
+class PhonemeType(str, Enum):
+    ESPEAK = "espeak"
+    TEXT = "text"
+    PINYIN = "pinyin"       # zh-CN
+    HEBREW = "hebrew"       # he-IL: Nakdimon niqqud + IPA G2P
+    JAPANESE = "japanese"   # ja-JP: OpenJTalk + pitch accent -> IPA
+    THAI = "thai"           # th-TH: TLTK segmentation + G2P -> IPA + tone digits
+    LITHUANIAN = "lithuanian"  # lt-LT: espeak-ng IPA + pitch accent dictionary
+```
+
+`LITHUANIAN` is, architecturally, this project: espeak IPA corrected by a
+lexical accent dictionary. The pattern is established and the maintainers have
+accepted several language-specific phonemizers.
+
+- **What:** propose a `SLOVENE` phoneme type to piper1-gpl.
+- **Payoff:** the voice would work in `wyoming-piper`, the Home Assistant Piper
+  add-on and `openedai-speech` with no server from this repository.
+- **Note on licensing:** piper1-gpl is GPL, whereas the code here is MIT and the
+  `ids.py` logic was taken from the earlier MIT piper. Contributing upstream
+  means contributing under GPL — fine for a contribution, but worth knowing.
+- **Also worth noting:** piper1-gpl's README is asking for maintainers, so
+  review capacity may be limited.
+- **Effort:** unknown; depends on maintainers.
+
+---
+
+## 4. Deliberately not planned
+
+- **Voice cloning.** This voice is one identifiable person who was recorded for
+  a research corpus. Building cloning on top of that is not something this
+  project will ship. See the model cards.
+- **Removing the share-alike terms.** Not possible honestly, and not desirable:
+  the corpora exist because they were publicly funded and openly licensed.
+- **Chasing a better `val_mel`.** It is reported for reproducibility. It does not
+  correlate with what a native speaker hears, which is the metric that matters —
+  epoch 207 held the best loss for roughly 500 epochs while the voice kept
+  improving audibly.
+
+---
+
+## How to help
+
+Several of these are genuinely self-contained and need no GPU: **0** (external
+evaluation), **1.5** (GGML conversion), **2.5** (pre-consonantal *l*), **3.1**
+(Hugging Face), **3.2** (container). Each is a useful contribution on its own.
+
+If you are a researcher with access to Slovene speech data that cannot be
+redistributed, **item 0 is still possible on your side** — running the published
+model against your held-out set and reporting the number would be valuable even
+without sharing the data.

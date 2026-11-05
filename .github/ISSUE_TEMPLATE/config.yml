@@ -1,0 +1,13 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question about the ARTUR corpus itself
+    url: https://www.clarin.si/repository/xmlui/handle/11356/1776
+    about: >-
+      Questions about the training data, its collection or its licence belong
+      with CLARIN.SI and the corpus authors, not here.
+  - name: Question about Sloleks
+    url: https://www.clarin.si/repository/xmlui/handle/11356/2080
+    about: >-
+      A wrong reference pronunciation IN THE LEXICON is a Sloleks matter. You
+      can still override it locally via user_lexicon.tsv - please send that fix
+      here as a pull request too.

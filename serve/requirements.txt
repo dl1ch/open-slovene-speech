@@ -1,0 +1,12 @@
+# Shared serving dependencies. Install only what you need:
+#   OpenAI-compatible HTTP API   fastapi uvicorn python-multipart
+#   Home Assistant (Wyoming)     wyoming
+#   TTS                          onnxruntime numpy   (see tts/requirements.txt)
+#   STT                          faster-whisper
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9
+wyoming>=1.5.4
+faster-whisper>=1.0
+onnxruntime>=1.17
+numpy>=1.24

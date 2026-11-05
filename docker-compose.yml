@@ -1,0 +1,44 @@
+# Two ways to serve these models. Run either, or both.
+#
+#   docker compose up api        OpenAI-compatible  -> Open WebUI, LibreChat, ...
+#   docker compose up wyoming    Wyoming protocol   -> Home Assistant
+#
+# Fetch the weights first:  scripts/fetch-models.sh
+services:
+  api:
+    build: .
+    ports: ["8080:8080"]
+    volumes: ["./models:/models:ro"]
+    environment:
+      SLOVENE_STT_DEVICE: cpu
+      SLOVENE_STT_COMPUTE: int8
+    restart: unless-stopped
+
+  wyoming:
+    build: .
+    command: ["python3", "serve/wyoming_server.py", "--uri", "tcp://0.0.0.0:10200"]
+    ports: ["10200:10200"]
+    volumes: ["./models:/models:ro"]
+    environment:
+      SLOVENE_STT_DEVICE: cpu
+      SLOVENE_STT_COMPUTE: int8
+    restart: unless-stopped
+
+  # Same as `api`, on a CUDA host. Needs the NVIDIA container toolkit and a GPU
+  # of compute capability >= 7.0 for int8_float16.
+  api-gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      args:
+        BASE: nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04
+    ports: ["8080:8080"]
+    volumes: ["./models:/models:ro"]
+    environment:
+      SLOVENE_STT_DEVICE: cuda
+      SLOVENE_STT_COMPUTE: int8_float16
+    deploy:
+      resources:
+        reservations:
+          devices: [{capabilities: ["gpu"]}]
+    restart: unless-stopped
