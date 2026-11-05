@@ -256,7 +256,9 @@ serve/wyoming_server.py   Wyoming protocol -> Home Assistant
 Dockerfile           }  docker compose up api      (HTTP, port 8080)
 docker-compose.yml   }  docker compose up wyoming  (HA, port 10200)
 scripts/             fetch the weights from the Release
-tools/               rebuild the release bundle (reference host only)
+tools/build_portable.py   rebuild the release bundle (reference host only)
+tools/check_lexicon.py    validate a lexicon against the voice's trained symbols
+tts/trained_phonemes.tsv  the 46 symbols the model has actually produced
 docs/                model cards, training recipe, deployment, roadmap
 ```
 
@@ -349,6 +351,26 @@ elsewhere in this README is the extracted recogniser: `model.bin` alone is
 ```bash
 scripts/fetch-models.sh          # downloads and verifies checksums
 ```
+
+---
+
+## Updating a component
+
+Most updates do **not** need retraining. The model consumes phoneme IDs, not
+text, so the lexicon, the rewrites, espeak and the English detection all sit
+outside the network and can be replaced in minutes. And because the LoRA adapter
+is published alongside the converted recogniser, any future runtime format can
+be produced without touching the GPU.
+
+Retraining is only needed for a new ARTUR release, a new Whisper base model, or
+a better voice. See **[docs/MAINTENANCE.md](docs/MAINTENANCE.md)** for the full
+table and the procedures.
+
+One trap worth knowing before swapping a lexicon: the model emitted exactly
+**46 distinct symbols** across its entire training set, while its config
+declares 166. A lexicon using anything outside those 46 fails silently — as an
+artefact if the symbol is in the id map, as a dropped sound if it is not. Run
+`tools/check_lexicon.py` first; it exits non-zero on a problem.
 
 ---
 
