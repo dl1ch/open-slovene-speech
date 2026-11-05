@@ -54,17 +54,30 @@ else
     "https://github.com/$REPO/releases/latest/download/SHA256SUMS" 2>/dev/null || true
 fi
 
-if [ -f "$DEST/SHA256SUMS" ]; then
+# sha256sum is the GNU/Linux tool, shasum the macOS/perl one. Most Linux
+# containers have neither guaranteed, so pick whichever exists rather than
+# assuming - an unverified download is worse than a slow one.
+if command -v sha256sum >/dev/null 2>&1; then
+  SHACHECK="sha256sum -c -"
+elif command -v shasum >/dev/null 2>&1; then
+  SHACHECK="shasum -a 256 -c -"
+else
+  SHACHECK=""
+fi
+
+if [ -f "$DEST/SHA256SUMS" ] && [ -n "$SHACHECK" ]; then
   echo "==> verifying"
   ( cd "$DEST"
     # check only what we actually downloaded, and fail loudly if it mismatches
     for a in "${assets[@]}"; do
       if grep -q "  $a\$" SHA256SUMS; then
-        grep "  $a\$" SHA256SUMS | shasum -a 256 -c -
+        grep "  $a\$" SHA256SUMS | $SHACHECK
       else
         echo "    no checksum published for $a" >&2
       fi
     done )
+elif [ -f "$DEST/SHA256SUMS" ]; then
+  echo "    WARNING: neither sha256sum nor shasum found - NOT verified" >&2
 else
   echo "    WARNING: no SHA256SUMS in the release - contents unverified" >&2
 fi
