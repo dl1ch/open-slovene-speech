@@ -1,0 +1,41 @@
+[
+  {
+    "name": "baseline (as shipped)",
+    "wer": 14.5302192904261,
+    "cer": 7.117997296234862,
+    "empty": 0,
+    "runaway": 4,
+    "kwargs": {}
+  },
+  {
+    "name": "condition_on_previous_text=False",
+    "wer": 14.5302192904261,
+    "cer": 7.117997296234862,
+    "empty": 0,
+    "runaway": 4,
+    "kwargs": {
+      "condition_on_previous_text": false
+    }
+  },
+  {
+    "name": "vad_filter=True",
+    "wer": 14.66096154989006,
+    "cer": 7.131420243722375,
+    "empty": 0,
+    "runaway": 4,
+    "kwargs": {
+      "vad_filter": true
+    }
+  },
+  {
+    "name": "both",
+    "wer": 14.66096154989006,
+    "cer": 7.131420243722375,
+    "empty": 0,
+    "runaway": 4,
+    "kwargs": {
+      "condition_on_previous_text": false,
+      "vad_filter": true
+    }
+  }
+]

@@ -34,6 +34,26 @@ Decoding trade-off, measured on the deployed conversion:
 
 Beam 2 is the knee and is what the reference deployment uses.
 
+## Out-of-domain performance
+
+FLEURS Slovene, 834 read Wikipedia sentences neither model trained on:
+
+| | stock large-v3 | this model |
+|---|---|---|
+| WER | 20.92% | **14.53%** |
+| CER | 6.25% | 7.12% |
+
+The WER gap is 30.5% relative — real generalisation, but about half the 57.8%
+the in-domain ARTUR comparison shows.
+
+**CER looks worse and is not.** This model writes numbers as words because
+ARTUR transcribes them that way; FLEURS uses digits. Excluding the 19% of
+utterances whose reference contains a digit, our CER is **3.85% against stock's
+6.05%** and WER is 11.92% against 21.07%. Empty, runaway and truncated output
+counts are identical to stock (0/0, 4/4, 2/2), and a decode-setting sweep moved
+WER by at most 0.13 points, so this is a convention difference rather than a
+decoding or stability problem.
+
 ## Intended use
 
 Transcribing Slovene speech: dictation, meeting and interview transcription,
@@ -60,8 +80,11 @@ model, not tuned to a single domain.
   regional dialect, children, disordered speech, non-native speakers — are not
   well represented and will do worse. This has not been measured per group.
 - **Noise and far-field audio** were not a focus. Expect degradation.
-- **Numbers and formatting** come out as spoken, not written, unless you apply
-  a denormaliser (RSDO-DS2-DENORM, Apache 2.0, see README).
+- **Numbers come out as words, not digits** — `1966` is transcribed *tisoč
+  devetsto šestinšestdeset*, which is what was said. This is ARTUR's
+  transcription convention, learned faithfully. It costs about 13 points of CER
+  on corpora that use digits. Apply a denormaliser (RSDO-DS2-DENORM, Apache 2.0)
+  if you need written form.
 - Whisper's known failure modes — hallucinating text over silence or noise,
   looping on degraded audio — are **inherited**. Fine-tuning does not remove
   them.

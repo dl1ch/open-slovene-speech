@@ -30,14 +30,23 @@ comparison needs a corpus neither model trained on.
 
 ## 1. Speech recognition
 
-### 1.1 Written-form output (denormalisation)
+### 1.1 Written-form output (denormalisation) — now measured, and bigger than it looked
 
-Transcripts currently come out as spoken words: *"sedemindvajsetega devetega
-dva tisoč šestindvajset"* rather than *"27. 9. 2026"*. For subtitles, notes and
-documents this is the single most visible defect.
+Transcripts come out as spoken words: *"sedemindvajsetega devetega dva tisoč
+šestindvajset"* rather than *"27. 9. 2026"*. For subtitles, notes and documents
+this is the single most visible defect.
+
+**Measured cost on FLEURS:** 19% of utterances contain a digit in the
+reference, and on those our CER is 20.74% against stock's 7.09%. Excluding them
+our CER is 3.85% against 6.05% — better than stock. The convention alone
+accounts for 2,752 excess character edits against a net total of 904, so it is
+not a cosmetic issue: it reverses the apparent CER result and costs roughly 3.3
+points of overall CER.
 
 - **What:** wire in RSDO-DS2-DENORM ([11356/1743](http://hdl.handle.net/11356/1743), Apache 2.0) as a post-processing stage.
 - **Effort:** 2–3 days. No retraining — it is a text-to-text step.
+- **Priority:** this is now the highest-value ASR item, ahead of 1.3. It needs
+  no GPU and would improve the headline CER more than any retrain.
 - **Note:** the inverse (NORM) is already used by the TTS side, so the
   dependency is understood.
 

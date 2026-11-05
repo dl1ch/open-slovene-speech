@@ -164,6 +164,57 @@ Fine-tuned on 853 h of ARTUR. Evaluated on a **speaker-disjoint** test set of
 The deployed CTranslate2 `int8_float16` conversion measures 7.26% WER at beam 5;
 quantisation did not cost accuracy on this test set.
 
+### Out of domain: FLEURS Slovene
+
+The table above is in-domain — ARTUR evaluated against ARTUR. Stock Whisper has
+never seen ARTUR, so part of that gap is domain adaptation. FLEURS is read
+Wikipedia sentences that **neither model trained on**, which is the fair test:
+
+| | stock large-v3 | this model |
+|---|---|---|
+| WER | 20.92% | **14.53%** |
+| relative WER reduction | | **30.5%** |
+
+So the fine-tune does generalise, but the honest figure is **30.5%**, not the
+57.8% the in-domain comparison suggests. Both numbers are real; they measure
+different things.
+
+#### The CER caveat, and why it is not what it looks like
+
+On that same set our CER is *worse* — 7.12% against 6.25% — while WER is far
+better. The cause is a transcription convention, not an error:
+
+```
+reference   802 11a 802 11b            1966
+ours        osemsto dva pika enajst a  tisoč devetsto šestinšestdeset
+stock       802 11a 802 11b            1966
+```
+
+**ARTUR transcribes numbers as words, so the model learned to write them that
+way.** FLEURS uses digits. Every number therefore scores as a long run of
+character errors for us and none for stock. Splitting the set on whether the
+reference contains a digit:
+
+| subset | our WER | our CER | stock WER | stock CER |
+|---|---|---|---|---|
+| all 834 | 14.53% | 7.12% | 20.92% | 6.25% |
+| references **with** digits (19%) | 24.79% | 20.74% | 20.34% | 7.09% |
+| references **without** digits (81%) | **11.92%** | **3.85%** | 21.07% | 6.05% |
+
+On 81% of the set our CER is **better than stock, not worse**. The digit-bearing
+utterances contribute 2,752 excess character edits against a net total of 904 —
+the convention mismatch was hiding an advantage of 1,848 edits everywhere else.
+
+This was checked for the alternative explanations first. Empty outputs: 0 for
+both. Runaway output: 4 for both. Truncation: 2 for both. A sweep of
+`condition_on_previous_text=False` and `vad_filter=True` moved WER by at most
+0.13 points, so it is not a decoding problem either.
+
+**The practical consequence:** if you need written-form numbers, run a
+denormaliser over the output — RSDO-DS2-DENORM, Apache 2.0, see
+[docs/ROADMAP.md](docs/ROADMAP.md) 1.1. Without one, expect `1966` to come out
+as *tisoč devetsto šestinšestdeset*, which is what was said.
+
 ### Text to speech
 
 There is no honest single number for TTS quality, and this is worth stating
@@ -260,6 +311,8 @@ tools/build_portable.py   rebuild the release bundle (reference host only)
 tools/check_lexicon.py    validate a lexicon against the voice's trained symbols
 tools/make_espeak_config.py  config for stock piper (degraded — see DEPLOYMENT)
 tools/verify_bundle.py    prove a bundle still works after a dependency bump
+tools/eval_fleurs.py      reproduce the out-of-domain evaluation
+docs/evaluation/          the raw CER investigation and decode sweep
 tts/trained_phonemes.tsv  the 46 symbols the model has actually produced
 docs/                model cards, training recipe, deployment, roadmap
 ```
