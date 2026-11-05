@@ -110,16 +110,52 @@ subset existed for that one.
 ### 2.2 Lift the 46-phoneme ceiling
 
 Over all 22,768 training utterances the model emitted exactly 46 distinct
-phonemes; 120 of the 166 `phoneme_id_map` entries were never trained, including
-every core English vowel and the English rhotic (ɹ æ ʊ ɚ ɑ ʌ ɜ ɐ θ ð). This is
-*the* reason faithful English is impossible, and no amount of front-end work
-fixes it — an untrained phoneme yields an artefact, not an accent.
+symbols. Its id map declares 166, so **120 entries were never trained.**
 
-- **What:** include English or mixed-language speech in training so those
-  symbols get trained.
-- **Effort:** substantial — new data, full retrain.
+Two different problems hide under "the phoneme limitation", and they have
+different fixes. Checked against the current upstream (OHF-Voice/piper1-gpl)
+and against this voice's own config:
+
+| | in the id map? | trained? | what would fix it |
+|---|---|---|---|
+| ɹ æ ʊ ɚ ɑ ʌ ɜ ɐ θ ð (English) | **yes, all 10** | no | training data containing those sounds |
+| ʧ ʣ ʤ ⁿ ˡ (Sloleks) | **no** | no | a larger id map at training time |
+
+**The English row is not a piper limitation at all.** Every symbol is already
+mapped; the model has simply never produced one, so it has an embedding that
+learned nothing. No change to piper or to the map helps. Only Slovene speech
+containing English sounds would, which is why faithful English needs a retrain
+on new data and nothing less.
+
+**The Sloleks row is fixable, and more cheaply than it looks.** The 166-symbol
+map was never a hard limit of piper:
+
+```python
+# piper1-gpl, phoneme_ids.py
+def phonemes_to_ids(phonemes, id_map=None):
+    if not id_map:
+        id_map = DEFAULT_PHONEME_ID_MAP
+```
+
+```python
+# piper1-gpl, config.py
+phoneme_id_map=config["phoneme_id_map"],
+```
+
+The map travels in each voice's config JSON; the 166-entry default is only a
+fallback for voices that supply none, and there is no `MAX_PHONEMES` anywhere.
+A retrained voice can declare whatever inventory it wants, including ʧ ʣ ʤ ⁿ ˡ
+directly — which would remove the rewrite step (`ʧ→tʃ` and friends) entirely
+and let the model learn Slovene č as one unit rather than two.
+
+Checked on the current upstream: the default map is still 166 entries and still
+lacks all five, so nothing improves by upgrading piper. The opportunity is in
+the training config, not in the dependency.
+
+- **Effort:** the Sloleks half is nearly free at the next retrain — extend the
+  map and skip the rewrite. The English half needs new data and is substantial.
 - **Honest view:** a Slovene-accented rendering of English is also what a
-  Slovene speaker produces, so this may not be worth the cost for most uses.
+  Slovene speaker produces, so the English half may not be worth its cost.
 
 ### 2.3 Digits in training data
 

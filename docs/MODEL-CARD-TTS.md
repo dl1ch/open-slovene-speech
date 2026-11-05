@@ -66,7 +66,9 @@ research projects.
   22,768 training utterances the model produced exactly **46 distinct
   phonemes**; 120 of the 166 entries in its `phoneme_id_map` were never trained,
   and all core English vowels plus the English rhotic are in the untrained set
-  (ɹ æ ʊ ɚ ɑ ʌ ɜ ɐ θ ð). An untrained phoneme yields an artefact, not an accent.
+  (ɹ æ ʊ ɚ ɑ ʌ ɜ ɐ θ ð). Those ten are *mapped* but never trained, so this is a
+  training-data limit rather than a piper one — an untrained phoneme yields an
+  artefact, not an accent, and no upgrade fixes it.
   English is therefore mapped onto Slovene phones — *think→tink*,
   *better→beter* — which is also what a Slovene speaker produces.
 - **Out-of-vocabulary words need espeak-ng.** Without it they are *silently
