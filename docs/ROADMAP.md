@@ -152,8 +152,56 @@ Checked on the current upstream: the default map is still 166 entries and still
 lacks all five, so nothing improves by upgrading piper. The opportunity is in
 the training config, not in the dependency.
 
-- **Effort:** the Sloleks half is nearly free at the next retrain — extend the
-  map and skip the rewrite. The English half needs new data and is substantial.
+#### What a retrain actually costs
+
+Measured on the completed run (Tesla V100-PCIE-32GB, batch 32, 16-mixed):
+
+| | |
+|---|---|
+| throughput | **8.2–8.4 epochs/hour** (from checkpoint timestamps, two independent windows) |
+| full run | 1,120 epochs → **~137 hours, 5.7 days** continuous |
+| dataset | 22,768 utterances |
+
+**Most of the cache survives a phoneme-map change**, which is what makes this
+cheaper than it looks:
+
+| cache | size | invalidated? |
+|---|---|---|
+| `spec.pt` (mel spectrograms) | 27.0 GiB | **no** |
+| `audio.pt` | 13.5 GiB | **no** |
+| `phonemes.pt` + `phonemes.txt` | 0.1 GiB | yes — regenerate |
+
+Only the phoneme files change, and regenerating them is a lexicon lookup over
+22,768 utterances: minutes of CPU, no GPU. The 40.5 GiB of audio and mel
+features is untouched, because the recordings have not changed.
+
+**Two routes, and they differ by two orders of magnitude:**
+
+*From scratch* — **~5.7 days**. Needed if the symbol→id assignment changes for
+existing symbols, because every embedding row then means something different.
+
+*Fine-tune from `epoch=729`* — **hours, not days, but unmeasured**. Append the
+five new symbols at ids 166–170 so every existing id keeps its meaning, grow
+the embedding table from 166 to 171 rows, and carry the old rows over. The new
+rows need not be random either: `ʧ` can be initialised from the mean of the
+existing `t` and `ʃ` embeddings, which is exactly the sound the model already
+produces for it. With that warm start, and `ʧ` at ~0.95% of all phonemes so it
+appears in most utterances, convergence should take tens of epochs — call it
+**3–10 hours**. That estimate is reasoning, not measurement; the embedding
+surgery is mechanical but has not been done here.
+
+**Is it worth doing alone? Probably not.** The model already renders Slovene č
+correctly as `tʃ`; the gain is one fewer rewrite step and a slightly cleaner
+inventory, not audibly better speech. The case for spending 5.7 days is
+multi-speaker (2.1), English phonemes (this item), and digits (2.3) **together
+in one run** — the phoneme-map extension is nearly free once that run is
+happening anyway.
+
+For comparison, the ASR side is far cheaper: ~22 GPU-hours for a full LoRA
+fine-tune, and re-converting to a new CTranslate2 format needs no GPU at all.
+
+- **Effort:** see the table above. The Sloleks half is nearly free once a
+  retrain is happening; the English half needs new data and is substantial.
 - **Honest view:** a Slovene-accented rendering of English is also what a
   Slovene speaker produces, so the English half may not be worth its cost.
 
