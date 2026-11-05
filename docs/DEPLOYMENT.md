@@ -51,8 +51,8 @@ Use the servers in `serve/`, which carry the phonemizer.
 | **`serve/openai_api.py`** (this repo) | ✅ correct pronunciation |
 | **`serve/wyoming_server.py`** (this repo) | ✅ correct pronunciation |
 | **`slovene_voice` as a library** | ✅ correct pronunciation |
-| stock **piper** / **wyoming-piper** | ❌ refuses to load (`ValueError: 'slovene' is not a valid PhonemeType`) |
-| **openedai-speech** | ❌ same — it uses piper underneath |
+| stock **piper** / **wyoming-piper** | ⚠️ refuses to load by default; works via `tools/make_espeak_config.py`, with ~74% of stress wrong |
+| **openedai-speech** | ⚠️ same — it uses piper underneath |
 
 ---
 
@@ -96,17 +96,47 @@ The same mounted directory works with Speaches, WhisperX, and
 the Speaches docs describe mounting a Hugging Face cache rather than a model
 directory, so check its configuration before assuming.
 
-### Text to speech — no
+### Text to speech — possible, but degraded
 
-There is no mount-only path for this voice. `wyoming-piper` can load custom
-voices from `--download-dir`, but it runs stock piper, which cannot phonemise
-Slovene from a lexicon and refuses to load a voice whose `phoneme_type` it does
-not recognise. See the warning at the top of this page.
+By default stock piper refuses this voice outright: its config says
+`"phoneme_type": "slovene"`, which upstream parses through an Enum, so loading
+raises `ValueError`.
 
-This may not be permanent. Upstream piper has added `PhonemeType.LITHUANIAN`,
-documented as *"espeak-ng IPA + pitch accent dictionary"* — architecturally the
-same idea as this voice. A `SLOVENE` type upstream would make the voice usable
-in any piper-based stack; see roadmap 3.4.
+You can override that, and sometimes you should. A worse voice inside the stack
+you already run can beat a better voice in a container you have to add:
+
+```bash
+tools/make_espeak_config.py models/slovene-voice/model/sl_SI-artur-medium.onnx.json
+# -> sl_SI-artur-medium.espeak.onnx.json
+```
+
+Copy that alongside the `.onnx` (renaming it to match), and `wyoming-piper`, the
+Home Assistant Piper add-on and `openedai-speech` will all load and speak it.
+
+**What it costs — measured, not guessed:**
+
+| | |
+|---|---|
+| lexical stress | **~74% of word forms wrong** — espeak cannot derive Slovene stress from spelling |
+| untrained symbols | **~6.5% of phoneme tokens** the model has never produced |
+| worst offender | `r` — espeak's trill where the model trained the tap `ɾ`, and Slovene is full of /r/ |
+| also | `h` for `x`, `ˌ` secondary stress, `ɲ` for `nj` |
+| plus | representation drift — espeak writes `ts` where the model trained the single `ʦ` |
+
+Those symbols are in piper's id map, so they are not dropped. They get an
+embedding that learned nothing, and come out as an artefact. **Nothing warns you
+at runtime.** It will sound fluent and wrong.
+
+The generator is shipped, but the generated config is **not** included in the
+release bundle. Producing it should be a deliberate act, not something found
+pre-made and used by accident.
+
+### This may not stay necessary
+
+Upstream piper has added `PhonemeType.LITHUANIAN`, documented as *"espeak-ng IPA
++ pitch accent dictionary"* — architecturally the same idea as this voice. A
+`SLOVENE` type upstream would make the voice work correctly in any piper-based
+stack, with no server from here and no degradation. See roadmap 3.4.
 
 ---
 

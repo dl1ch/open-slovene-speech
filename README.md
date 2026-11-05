@@ -258,6 +258,7 @@ docker-compose.yml   }  docker compose up wyoming  (HA, port 10200)
 scripts/             fetch the weights from the Release
 tools/build_portable.py   rebuild the release bundle (reference host only)
 tools/check_lexicon.py    validate a lexicon against the voice's trained symbols
+tools/make_espeak_config.py  config for stock piper (degraded — see DEPLOYMENT)
 tts/trained_phonemes.tsv  the 46 symbols the model has actually produced
 docs/                model cards, training recipe, deployment, roadmap
 ```
@@ -319,12 +320,16 @@ docker run -it -p 10300:10300 -v ./data:/data \
   rhasspy/wyoming-whisper --data-dir /data --model /models/slovene --language sl
 ```
 
-> **The voice has no such mount-only path.** Its config declares
-> `"phoneme_type": "slovene"`, which upstream piper does not know, so stock
-> piper and the Home Assistant Piper add-on **refuse to load it**
-> (`ValueError: 'slovene' is not a valid PhonemeType`). Forcing the config to
-> `espeak` makes it load and be wrong twice over — misplaced stress, and
-> phoneme symbols the model was never trained on. Use `serve/`.
+> **The voice is different.** Its config declares `"phoneme_type": "slovene"`,
+> which upstream piper does not know, so stock piper and the Home Assistant
+> Piper add-on **refuse to load it** by default.
+>
+> `tools/make_espeak_config.py` produces a config they will accept, if a
+> degraded voice in your existing stack beats adding a container. The cost is
+> measured: **~74% of word forms mis-stressed** and **~6.5% of phoneme tokens
+> rendered as symbols the model never trained**, notably every `/r/`. Nothing
+> warns you at runtime — it sounds fluent and wrong. For correct pronunciation
+> use `serve/`.
 
 ---
 
