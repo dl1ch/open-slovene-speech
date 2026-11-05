@@ -81,6 +81,26 @@ at least one such symbol, almost all of them foreign proper nouns. That is a
 known limitation of the voice as shipped, and lifting it means retraining with a
 wider phoneme inventory (roadmap 2.2), not swapping a lexicon.
 
+## Updating a Python dependency
+
+This project tracks current versions rather than the widest compatibility, so a
+dependency bump can raise the Python minimum. That is acceptable only if the
+bundle still behaves identically. Verify before merging:
+
+```bash
+tools/verify_bundle.py /path/to/slovene-voice
+```
+
+It checks that the lexicon and English list load with the expected counts, that
+phonemisation is **byte-identical** to known-good output, and that synthesis
+produces plausible audio. Exit status is non-zero on a regression.
+
+Phonemes are the right thing to compare. Audio cannot be, because VITS sampling
+is stochastic and two runs of identical input always differ.
+
+Verified identical across Python 3.9.6 / 3.12.14 / 3.13.15, onnxruntime
+1.19.2–1.31.1 and numpy 2.0.2–2.5.4.
+
 ## Updating espeak-ng
 
 espeak handles only out-of-vocabulary words, about 1.34% of running text. Its

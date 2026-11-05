@@ -35,6 +35,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        with: { python-version: "3.11" }
+        with: { python-version: "3.13" }
       - run: pip install --quiet pyyaml
       - run: python -c "import yaml;yaml.safe_load(open('CITATION.cff'));print('ok')"

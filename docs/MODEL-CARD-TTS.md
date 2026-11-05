@@ -10,7 +10,7 @@
 | voice | single speaker (G0911), 40 h studio recordings |
 | checkpoint | epoch 729, `val_mel` 0.3784 |
 | size | 68 MiB download, 74 MB on disk, ~1.06 GB RAM when loaded |
-| speed | 4–41× realtime on CPU, depending on the machine |
+| speed | up to 60× realtime on CPU (measured, Python 3.12/3.13) |
 | licence | CC BY-SA 4.0 (see LICENSE-MODELS.md) |
 
 ## What makes this voice different

@@ -31,7 +31,7 @@ services:
     build:
       context: .
       args:
-        BASE: nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04
+        BASE: nvidia/cuda:12.6.0-cudnn-runtime-ubuntu24.04
     ports: ["8080:8080"]
     volumes: ["./models:/models:ro"]
     environment:

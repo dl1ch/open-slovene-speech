@@ -10,18 +10,15 @@
 # faster-whisper a major bump is a real compatibility question, not a bump.
 version: 2
 updates:
-  # /tts declares MINIMUMS for a library people install into their own
-  # environment. Raising a floor there updates nobody -- pip already resolves
-  # to the newest compatible release -- it only excludes users on older
-  # Pythons. A bump to onnxruntime>=1.31.1 would have excluded Python 3.9,
-  # where this bundle is verified working. So version updates are off here;
-  # security updates still apply, and that is the case where a floor earns its
-  # cost.
+  # /tts tracks current deliberately: this project targets the newest stack
+  # rather than the widest. A floor bump here raises the project's Python
+  # minimum, so take these PRs only after verifying the bundle still runs --
+  # tools/verify_bundle.py does exactly that.
   - package-ecosystem: pip
     directory: /tts
     schedule:
       interval: monthly
-    open-pull-requests-limit: 0
+    open-pull-requests-limit: 3
     labels: ["dependencies"]
 
   # /serve is the container's stack and is pinned by requirements.lock, so

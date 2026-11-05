@@ -4,8 +4,8 @@
 #   docker run -p 8080:8080 -v ./models:/models slovene-speech
 #
 # CPU by default. For GPU recognition, build with:
-#   docker build --build-arg BASE=nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04 .
-ARG BASE=python:3.11-slim
+#   docker build --build-arg BASE=nvidia/cuda:12.6.0-cudnn-runtime-ubuntu24.04 .
+ARG BASE=python:3.13-slim
 FROM ${BASE}
 
 # espeak-ng is NOT optional in practice: it is the fallback for words missing

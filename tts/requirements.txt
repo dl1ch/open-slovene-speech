@@ -1,12 +1,13 @@
-# MINIMUMS, not pins. This file is what people pip install into their own
-# environment alongside whatever else they run, and a pin there only creates
-# conflicts without making anything more reproducible.
+# MINIMUMS, not pins. This file is installed into the user's own environment,
+# where a pin only creates conflicts. For reproducible container builds see
+# serve/requirements.lock, which pins exactly.
 #
-# Kept deliberately low. The bundle is verified working on Python 3.9.6 with
-# onnxruntime 1.19.2 and numpy 2.0.2 (41x realtime on Apple Silicon), so a
-# higher floor would exclude a configuration known to work. Raise one only for
-# a security fix or a feature actually required here.
+# Floors are current on purpose. Verified running this bundle on:
+#   Python 3.12.14 + onnxruntime 1.31.1 + numpy 2.5.4   60x realtime
+#   Python 3.13.15 + onnxruntime 1.31.1 + numpy 2.5.4   60x realtime
+# with byte-identical phoneme output on both.
 #
-# For reproducible container builds see serve/requirements.lock, which pins.
-onnxruntime>=1.17
-numpy>=1.24
+# numpy 2.5.x publishes no wheels below cp312, so this floor sets the project's
+# Python minimum at 3.12.
+onnxruntime>=1.31.1
+numpy>=2.5.4

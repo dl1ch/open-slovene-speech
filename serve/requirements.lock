@@ -1,9 +1,10 @@
 # Exact versions for the container image. Generated, do not hand-edit.
 #   pip install --dry-run --report - -r serve/requirements.txt
+# Resolved on Python 3.13, which is the Dockerfile base.
 #
-# This pins; serve/requirements.txt and tts/requirements.txt declare
-# MINIMUMS instead, because those are what people pip install into their
-# own environments and a pin there only creates conflicts.
+# This pins. serve/requirements.txt and tts/requirements.txt declare
+# MINIMUMS instead, because those go into the user own environment where
+# a pin only creates conflicts.
 
 annotated-doc==0.0.5
 annotated-types==0.8.0

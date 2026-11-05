@@ -7,7 +7,7 @@ runnable on ordinary hardware.
 | | model | result |
 |---|---|---|
 | **STT** | Whisper large-v3 + LoRA, fine-tuned on 853 h of ARTUR | **7.77% WER** (18.41% for stock Whisper) |
-| **TTS** | Piper/VITS, 22.05 kHz, single speaker, lexicon-based phonemizer | 4–41× realtime on CPU, no GPU needed |
+| **TTS** | Piper/VITS, 22.05 kHz, single speaker, lexicon-based phonemizer | up to 60× realtime on CPU, no GPU needed |
 
 Slovene is a small language with excellent public language resources and almost
 no ready-to-run models built from them. The corpora below already existed; this
@@ -39,14 +39,9 @@ v = SloveneVoice()
 v.to_wav("V Ljubljani je triindvajset stopinj.", "out.wav")
 ```
 
-No piper, no GPU, no special distribution. Python 3.9+ and onnxruntime are
+No piper, no GPU, no special distribution. Python 3.12+ and onnxruntime are
 the whole runtime.
 Install `espeak-ng` as well — see [Why the phonemizer matters](#why-the-phonemizer-matters).
-
-> **The two halves have different Python floors.** The portable voice runs on
-> **3.9+** and is verified there. The serving stack in `serve/` needs **3.11+**,
-> because onnxruntime 1.31 and python-multipart 0.0.33 require it. If you only
-> want the voice as a library, the older floor is the one that applies.
 
 ### Speech to text
 
@@ -78,7 +73,7 @@ the one that wants a GPU.
 | CPU | any x86-64 or arm64 | no AVX-512, no GPU, no NPU |
 | RAM | **1.5 GB free** | measured peak 1.06 GB — see below |
 | disk | **80 MB** | the extracted bundle is 74 MB |
-| Python | **3.9+** | `onnxruntime` + `numpy` are the only hard deps; verified on 3.9.6 |
+| Python | **3.12+** | verified on 3.12.14 and 3.13.15 with onnxruntime 1.31.1 + numpy 2.5.4 |
 | optional | `espeak-ng` | strongly recommended — without it OOV words are dropped |
 
 **Memory is the real constraint, not disk.** Measured peak RSS on macOS:
@@ -95,11 +90,11 @@ dict. The `.tsv.xz` is read straight into memory and never decompressed to disk,
 so the cost is RAM, not storage. A 1 GB machine will not fit it; 2 GB is
 comfortable.
 
-Speed varies a lot with the CPU. Measured: **~4× realtime** on the reference
-server (an older x86-64 core, which is where the conservative figure in this
-README comes from) and **41× realtime** on an Apple Silicon Mac — 3.96 s of
-audio in 0.10 s. Assume the low end when sizing; you will probably do better.
-A Raspberry Pi 5 is within range; a Pi 4 has not been tested.
+Speed varies with the CPU. Measured on the current stack: **60× realtime** on
+an x86-64 server (3.91 s of audio in 0.06 s, identical on Python 3.12 and 3.13)
+and **41× realtime** on an Apple Silicon Mac. An older server core managed ~4×,
+so assume the low end when sizing and you will probably do better. A Raspberry
+Pi 5 is within range; a Pi 4 has not been tested.
 
 Construction decompresses the lexicon and costs **2–3 seconds**, so build one
 `SloveneVoice` and keep it. Do not construct one per utterance.
@@ -264,6 +259,7 @@ scripts/             fetch the weights from the Release
 tools/build_portable.py   rebuild the release bundle (reference host only)
 tools/check_lexicon.py    validate a lexicon against the voice's trained symbols
 tools/make_espeak_config.py  config for stock piper (degraded — see DEPLOYMENT)
+tools/verify_bundle.py    prove a bundle still works after a dependency bump
 tts/trained_phonemes.tsv  the 46 symbols the model has actually produced
 docs/                model cards, training recipe, deployment, roadmap
 ```
