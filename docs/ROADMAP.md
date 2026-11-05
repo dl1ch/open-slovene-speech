@@ -298,41 +298,73 @@ which would cut perceived latency in Assist pipelines on long replies.
 
 - **Effort:** 2–3 days.
 
-### 3.4 Get the phonemizer upstream — now has a precedent
+### 3.4 Get the phonemizer upstream — the way to drop the self-hosting
 
 `PhonemeType.SLOVENE` does not exist in piper, so no piper-based stack can serve
-this voice: it refuses to load a `phoneme_type` it does not recognise.
+this voice correctly. Upstreaming it would remove the need for any server in
+this repository: `wyoming-piper`, the Home Assistant Piper add-on and
+`openedai-speech` would all just work.
 
-**This became much more tractable.** Upstream piper (now
-[OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl)) has grown its
-enum well past the original two values:
+**The precedent is almost exactly this project.** Current piper
+([OHF-Voice/piper1-gpl](https://github.com/OHF-Voice/piper1-gpl)) ships
+`PhonemeType.LITHUANIAN`, documented as *"espeak-ng IPA + pitch accent
+dictionary"* — espeak output corrected by a lexical lookup, which is what the
+Slovene phonemizer does. Its data is built from CC-BY-4.0 corpora, so a
+CC BY-SA 4.0 lexicon is not obviously out of bounds either.
 
-```python
-class PhonemeType(str, Enum):
-    ESPEAK = "espeak"
-    TEXT = "text"
-    PINYIN = "pinyin"       # zh-CN
-    HEBREW = "hebrew"       # he-IL: Nakdimon niqqud + IPA G2P
-    JAPANESE = "japanese"   # ja-JP: OpenJTalk + pitch accent -> IPA
-    THAI = "thai"           # th-TH: TLTK segmentation + G2P -> IPA + tone digits
-    LITHUANIAN = "lithuanian"  # lt-LT: espeak-ng IPA + pitch accent dictionary
+**The established pattern**, from reading the Lithuanian implementation:
+
+```
+src/piper/phonemize_lithuanian.py     the module
+src/piper/lithuanian/lt_kirciai.tsv   the dictionary, plain TSV, package data
+src/piper/lithuanian/LICENSE          third-party data ships its own licence
+src/piper/lithuanian/SOURCE           and its provenance
 ```
 
-`LITHUANIAN` is, architecturally, this project: espeak IPA corrected by a
-lexical accent dictionary. The pattern is established and the maintainers have
-accepted several language-specific phonemizers.
+```python
+# voice.py — lazily imported, one instance cached per voice
+if self.config.phoneme_type == PhonemeType.LITHUANIAN:
+    from .phonemize_lithuanian import LithuanianPhonemizer
+    phonemizer = getattr(self, "_lithuanian_phonemizer", None)
+    if phonemizer is None:
+        phonemizer = LithuanianPhonemizer(espeak_data_dir=self.espeak_data_dir)
+        setattr(self, "_lithuanian_phonemizer", phonemizer)
+    return phonemizer.phonemize(text)
+```
 
-- **What:** propose a `SLOVENE` phoneme type to piper1-gpl.
-- **Payoff:** the voice would work in `wyoming-piper`, the Home Assistant Piper
-  add-on and `openedai-speech` with no server from this repository.
-- **Note on licensing:** piper1-gpl is GPL, whereas the code here is MIT and the
-  `ids.py` logic was taken from the earlier MIT piper. Contributing upstream
-  means contributing under GPL — fine for a contribution, but worth knowing.
-- **Also worth noting:** piper1-gpl's README is asking for maintainers, so
-  review capacity may be limited.
-- **Effort:** unknown; depends on maintainers.
+Data files are listed by explicit filename in `setup.py`'s `package_data` — not
+a glob — so adding a language means touching the packaging too.
 
----
+**The one real obstacle is size.** Lithuanian's dictionary is 189k words and "a
+few MB" of plain TSV. Sloleks is 2.9 M forms: 81 MB raw, 13 MB as `.xz`. That is
+roughly fifteen times any data currently bundled, and there is no precedent in
+the repo for compressed package data.
+
+Measured here, pruning is not a free answer:
+
+| lexicon | entries | token coverage |
+|---|---|---|
+| full Sloleks | 2,910,337 | **98.54%** |
+| pruned to a 22.7k-utterance corpus | 50,718 | **88.08%** |
+
+Dropping to Lithuanian's scale costs about ten points of coverage, which moves
+12% of tokens onto espeak's wrong stress instead of 1.5%. A pruned list chosen
+from a large Slovene corpus (Gigafida rather than this read-speech set) would do
+considerably better at the same size, and that is the experiment worth running
+before proposing anything.
+
+**There is also a download precedent.** The Chinese phonemizer takes its data
+from `self.download_dir / "g2pW"` rather than package data, so a large lexicon
+fetched on first use is not without a model in the project.
+
+- **Realistic plan:** (a) build a frequency-pruned lexicon from a proper corpus
+  and measure where coverage lands at ~5 MB, (b) if that is good enough, follow
+  the Lithuanian pattern exactly; if not, follow the Chinese download pattern.
+- **Caveats:** piper1-gpl is GPL, so contributing means contributing under GPL,
+  and the project has no `CONTRIBUTING.md` and is currently asking for
+  maintainers, so review capacity is uncertain.
+- **Publishing first helps.** A phonemizer cannot be upstreamed while its
+  lexicon and voice are unpublished.
 
 ## 4. Deliberately not planned
 
