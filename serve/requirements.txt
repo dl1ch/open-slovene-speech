@@ -15,5 +15,12 @@ uvicorn[standard]>=0.54.0
 python-multipart>=0.0.33
 wyoming>=1.10.2
 faster-whisper>=1.2.1
+# UPPER BOUND, and not a precaution. faster-whisper 1.2.1 declares `av>=11`
+# with no ceiling, but PyAV 19 removed the `metadata_errors` argument that
+# faster_whisper/audio.py passes to av.open(). The result installs cleanly and
+# raises TypeError on the first transcription, so a container builds green and
+# fails in production. Verified: av 18.0.0 and below work, 19.0.2 does not.
+# Remove this once faster-whisper ships a fix or its own bound.
+av>=11,<19
 onnxruntime>=1.31.1
 numpy>=2.5.4

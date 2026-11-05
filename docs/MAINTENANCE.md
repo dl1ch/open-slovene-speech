@@ -101,6 +101,32 @@ is stochastic and two runs of identical input always differ.
 Verified identical across Python 3.9.6 / 3.12.14 / 3.13.15, onnxruntime
 1.19.2–1.31.1 and numpy 2.0.2–2.5.4.
 
+### Check the recogniser too, not just the voice
+
+`verify_bundle.py` covers the voice. The recogniser has its own trap, already
+hit once:
+
+**`faster-whisper` declares `av>=11` with no upper bound, and PyAV 19 removed
+the `metadata_errors` argument it passes to `av.open()`.** The install resolves
+cleanly; the failure is a `TypeError` on the first transcription. A container
+builds green and dies in production. `serve/requirements.txt` therefore pins
+`av>=11,<19`, which should be removed once upstream fixes it.
+
+The cheap end-to-end check is a round trip — synthesise a sentence, transcribe
+it back:
+
+```python
+from slovene_voice import SloveneVoice
+from faster_whisper import WhisperModel
+SloveneVoice().to_wav("Danes je lep dan v Ljubljani.", "/tmp/rt.wav")
+m = WhisperModel("models/slovene-whisper-ct2", device="cpu", compute_type="int8")
+print(" ".join(s.text for s in m.transcribe("/tmp/rt.wav", language="sl")[0]))
+```
+
+Measured on the current stack: **98% mean similarity** over three sentences,
+two of them transcribed exactly. It exercises both models and the audio
+decoding path that the version bound above exists to protect.
+
 ## Updating espeak-ng
 
 espeak handles only out-of-vocabulary words, about 1.34% of running text. Its
