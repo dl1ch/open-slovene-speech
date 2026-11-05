@@ -23,6 +23,10 @@ WORKDIR /app
 COPY serve/requirements.txt serve/requirements.lock /app/serve/
 RUN python3 -m pip install --no-cache-dir -r serve/requirements.lock
 
+# The denormaliser uses nltk's punkt tokenizer, which nltk fetches over the
+# network on first use. Bake it in so the container works offline.
+RUN python3 -c "import nltk; nltk.download('punkt', quiet=True); nltk.download('punkt_tab', quiet=True)"
+
 COPY tts/ /app/tts/
 COPY serve/ /app/serve/
 COPY stt/ /app/stt/
