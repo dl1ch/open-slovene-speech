@@ -3,7 +3,7 @@ message: >-
   If you use these models, please cite the underlying corpora (ARTUR 1.0 and
   Sloleks 3.1) as well as, or instead of, this repository. They are the
   substantive contribution; this is a recipe and a set of weights built on them.
-title: "Slovene Speech: open TTS and ASR models for Slovene"
+title: "Open Slovene Speech: TTS and ASR models for Slovene"
 abstract: >-
   A Slovene text-to-speech voice (Piper/VITS, 22.05 kHz, lexicon-based
   phonemizer) and a Slovene speech-recognition model (Whisper large-v3 with a
@@ -15,8 +15,8 @@ authors:
   - name: "dl1ch"
     website: "https://github.com/dl1ch"
 license: MIT
-license-url: "https://github.com/dl1ch/slovene-speech/blob/main/LICENSE"
-repository-code: "https://github.com/dl1ch/slovene-speech"
+license-url: "https://github.com/dl1ch/open-slovene-speech/blob/main/LICENSE"
+repository-code: "https://github.com/dl1ch/open-slovene-speech"
 keywords:
   - Slovene
   - slovenščina

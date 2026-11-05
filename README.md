@@ -1,4 +1,4 @@
-# Slovene Speech
+# Open Slovene Speech
 
 Open speech models for Slovene: a **text-to-speech voice** and a **speech
 recognition model**, both trained on publicly available Slovene corpora and both
@@ -105,7 +105,7 @@ Construction decompresses the lexicon and costs **2–3 seconds**, so build one
 
 | | minimum | notes |
 |---|---|---|
-| GPU | NVIDIA, **compute capability ≥ 7.0** | `int8_float16` needs Volta or newer; measured on a V100 |
+| GPU | NVIDIA, **compute capability ≥ 7.0** | `int8_float16` needs Volta or newer |
 | VRAM | **~2 GB** | model is 1.5 GB on disk |
 | RAM | 4 GB | |
 | disk | **2 GB** | |
@@ -128,7 +128,7 @@ streaming.
 **Fine-tuning or running the LoRA adapter under `transformers`** is a different
 budget: whisper-large-v3 is 1.55 B parameters, so inference in fp16 needs about
 **4 GB VRAM** and the training run described in `docs/TRAINING.md` used a
-16 GB V100 for ~22 GPU-hours per epoch pair.
+single 32 GB datacenter GPU for ~22 GPU-hours per epoch pair.
 
 ### Optional: the text normalisation service
 
@@ -139,8 +139,8 @@ models, and it takes about **30 seconds to start**. This is exactly why it is
 not part of the portable bundle.
 
 > **Which of these are measured.** The STT VRAM, WER, beam trade-off and the
-> TTS realtime factor are measured on the reference machine (NVIDIA V100,
-> x86-64). The RAM and disk minimums are working figures rather than tight
+> TTS realtime factor are measured on the reference machine (a 32 GB NVIDIA
+> datacenter GPU of compute capability 7.0, x86-64). The RAM and disk minimums are working figures rather than tight
 > bounds — if you run close to them, measure on your own hardware.
 
 ---
@@ -386,7 +386,7 @@ See **[docs/TRAINING.md](docs/TRAINING.md)** for the full recipe. The short vers
 
 **STT** — LoRA r=32 on q/k/v/out projections of whisper-large-v3, 2 epochs,
 batch 4 × grad-accum 8, lr 1e-4, fp16. About 22 GPU-hours per run on a single
-V100.
+32 GB GPU.
 
 **TTS** — Piper/VITS medium tier, 22.05 kHz, trained from the ARTUR studio
 subset with lexicon-derived phonemes rather than espeak ones.

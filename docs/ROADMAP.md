@@ -3,8 +3,8 @@
 What could be done next, why it matters, and roughly what it costs. Ordered by
 what would change the most for users, not by what is easiest.
 
-Effort is in person-days of focused work plus GPU time on a single V100-class
-card. "Blocked on" means it genuinely cannot start until that is resolved.
+Effort is in person-days of focused work plus GPU time on a single 32 GB
+datacenter GPU of compute capability 7.0. "Blocked on" means it genuinely cannot start until that is resolved.
 
 ---
 
@@ -154,7 +154,8 @@ the training config, not in the dependency.
 
 #### What a retrain actually costs
 
-Measured on the completed run (Tesla V100-PCIE-32GB, batch 32, 16-mixed):
+Measured on the completed run (32 GB GPU, compute capability 7.0, batch 32,
+16-mixed precision):
 
 | | |
 |---|---|

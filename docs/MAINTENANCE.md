@@ -169,7 +169,7 @@ back to downloading `whisper-tiny`'s tokenizer, and without
 
 ## What a retrain actually costs
 
-Both models were trained on a single V100. Neither needs a cluster.
+Both models were trained on a single 32 GB GPU. Neither needs a cluster.
 
 - **ASR**: ~22 GPU-hours per run. The recipe and the three data bugs worth
   avoiding are in [TRAINING.md](TRAINING.md).

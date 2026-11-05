@@ -237,7 +237,8 @@ def elide_hiatus(ipa: str) -> str:
 # misses it entirely - 12.7% OOV on song lyrics versus 1.3% on prose - and those
 # words fall through to espeak, which mis-stresses ~74% of what it sees.
 #
-# File: /var/lib/slovene-tts/lexicon/user_lexicon.tsv, one entry per line:
+# File: lexicon/user_lexicon.tsv beside the voice (SLOVENE_USER_LEXICON
+# overrides the path), one entry per line:
 #
 #     surface <TAB> replacement
 #

@@ -10,7 +10,7 @@
 #   scripts/fetch-models.sh stt        # just the recogniser (1.5 GB)
 set -euo pipefail
 
-REPO="${SLOVENE_SPEECH_REPO:-dl1ch/slovene-speech}"
+REPO="${SLOVENE_SPEECH_REPO:-dl1ch/open-slovene-speech}"
 TAG="${SLOVENE_SPEECH_TAG:-latest}"
 DEST="${SLOVENE_SPEECH_DEST:-$(cd "$(dirname "$0")/.." && pwd)/models}"
 WHAT="${1:-all}"

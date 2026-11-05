@@ -12,8 +12,8 @@ not exist upstream. Without that installation it has nothing to read. It is
 here as provenance: it records exactly how the released bundle was produced.
 
 To just USE the voice, download the bundle (scripts/fetch-models.sh tts); you
-do not need this file. Paths are overridable: PIPER_PKG, MODEL_SRC, LEX_SRC,
-BUNDLE_OUT.
+do not need this file. All inputs come from PIPER_PKG, MODEL_SRC and LEX_SRC;
+there are no defaults, so nothing depends on one machine's directory layout.
 
 This extracts the three pieces that actually matter and drops piper entirely:
 
@@ -34,12 +34,21 @@ import shutil
 import subprocess
 import sys
 
-SRC = os.environ.get("PIPER_PKG",
-    "/var/lib/slovene-tts/venv/lib/python3.12/site-packages/piper")
+# No defaults that assume one machine's layout: every input is an explicit
+# environment variable, and the script says what is missing rather than
+# silently reading from somewhere that happens to exist.
+SRC = os.environ.get("PIPER_PKG")        # the PATCHED piper package directory
+MODEL_SRC = os.environ.get("MODEL_SRC")  # holds sl_SI-artur-medium.onnx[.json]
+LEX_SRC = os.environ.get("LEX_SRC")      # holds sl_pronunciation.tsv et al.
 OUT = os.environ.get("BUNDLE_OUT", "./slovene-voice")
 PKG = os.path.join(OUT, "slovene_voice")
-MODEL_SRC = os.environ.get("MODEL_SRC", "/var/lib/slovene-tts/model")
-LEX_SRC = os.environ.get("LEX_SRC", "/var/lib/slovene-tts/lexicon")
+_missing = [n for n, v in (("PIPER_PKG", SRC), ("MODEL_SRC", MODEL_SRC),
+                           ("LEX_SRC", LEX_SRC)) if not v]
+if _missing:
+    raise SystemExit(
+        "set %s. This script rebuilds the release bundle from a PATCHED piper "
+        "install and is not needed to use the voice - download the bundle "
+        "instead (scripts/fetch-models.sh tts)." % ", ".join(_missing))
 
 for d in (PKG, os.path.join(OUT, "model"), os.path.join(OUT, "lexicon")):
     os.makedirs(d, exist_ok=True)

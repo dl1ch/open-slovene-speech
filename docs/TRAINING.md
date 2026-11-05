@@ -1,7 +1,7 @@
 # Training
 
-Both models were trained on a single NVIDIA V100 (16 GB, sm_70). Neither needed
-a cluster.
+Both models were trained on a single 32 GB NVIDIA datacenter GPU (compute
+capability 7.0). Neither needed a cluster.
 
 ---
 

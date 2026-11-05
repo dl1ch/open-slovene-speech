@@ -67,7 +67,7 @@ cfg["_degraded"] = {
                 "phoneme tokens rendered as untrained symbols (notably /r/ and "
                 "/h/). For correct pronunciation use the original config with "
                 "the slovene_voice phonemizer."),
-    "correct_usage": "https://github.com/dl1ch/slovene-speech",
+    "correct_usage": "https://github.com/dl1ch/open-slovene-speech",
 }
 
 base = src[:-len(".onnx.json")] if src.endswith(".onnx.json") else os.path.splitext(src)[0]

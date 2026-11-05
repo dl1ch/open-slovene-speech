@@ -42,7 +42,7 @@ _LOGGER = logging.getLogger("slovene-wyoming")
 # where Home Assistant surfaces it in the UI.
 ATTR = Attribution(
     name="ARTUR 1.0 (Verdonik et al., 2023) / Sloleks 3.1 (Cibej et al., 2026), CC BY-SA 4.0",
-    url="https://github.com/dl1ch/slovene-speech",
+    url="https://github.com/dl1ch/open-slovene-speech",
 )
 
 
