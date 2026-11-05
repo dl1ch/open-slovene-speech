@@ -17,8 +17,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY serve/requirements.txt /app/serve/requirements.txt
-RUN python3 -m pip install --no-cache-dir -r serve/requirements.txt
+# The lock pins exact versions so an image built today matches one built in a
+# year. requirements.txt declares minimums and is for people installing into
+# their own environment, where pinning only causes conflicts.
+COPY serve/requirements.txt serve/requirements.lock /app/serve/
+RUN python3 -m pip install --no-cache-dir -r serve/requirements.lock
 
 COPY tts/ /app/tts/
 COPY serve/ /app/serve/

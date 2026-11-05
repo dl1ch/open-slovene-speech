@@ -1,2 +1,12 @@
-onnxruntime>=1.31.1
+# MINIMUMS, not pins. This file is what people pip install into their own
+# environment alongside whatever else they run, and a pin there only creates
+# conflicts without making anything more reproducible.
+#
+# Kept deliberately low. The bundle is verified working on Python 3.9.6 with
+# onnxruntime 1.19.2 and numpy 2.0.2 (41x realtime on Apple Silicon), so a
+# higher floor would exclude a configuration known to work. Raise one only for
+# a security fix or a feature actually required here.
+#
+# For reproducible container builds see serve/requirements.lock, which pins.
+onnxruntime>=1.17
 numpy>=1.24

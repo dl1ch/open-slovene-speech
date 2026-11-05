@@ -256,6 +256,14 @@ with open(os.path.join(LEX_SRC, "sl_pronunciation.tsv"), "rb") as fi, \
                   preset=6) as fo:
     shutil.copyfileobj(fi, fo, 1 << 20)
 
-open(os.path.join(OUT, "requirements.txt"), "w").write(
-    "onnxruntime>=1.17\nnumpy>=1.24\n")
+# Copy the repo's declared minimums rather than restating them here. These
+# were hardcoded, and had already drifted from tts/requirements.txt - the
+# bundle shipped onnxruntime>=1.17 while the repo said >=1.31.1.
+_req = os.environ.get("TTS_REQUIREMENTS", os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "tts", "requirements.txt"))
+if os.path.exists(_req):
+    shutil.copy2(_req, os.path.join(OUT, "requirements.txt"))
+else:
+    raise SystemExit("cannot find %s - the bundle would ship invented "
+                     "dependency versions" % _req)
 print("built:", OUT)

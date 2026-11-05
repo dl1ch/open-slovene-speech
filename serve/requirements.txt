@@ -1,3 +1,10 @@
+# MINIMUMS for the serving stack. For reproducible container builds use
+# requirements.lock in this directory, which pins exact versions.
+#
+# These floors need Python 3.11+ (onnxruntime 1.31, python-multipart 0.0.33).
+# The portable TTS bundle does NOT: see tts/requirements.txt, which stays
+# permissive so the voice keeps running on 3.9.
+#
 # Shared serving dependencies. Install only what you need:
 #   OpenAI-compatible HTTP API   fastapi uvicorn python-multipart
 #   Home Assistant (Wyoming)     wyoming
