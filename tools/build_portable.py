@@ -63,6 +63,15 @@ src, n = _re.subn(
     '"SLOVENE_USER_LEXICON", str(_HERE / "lexicon" / "user_lexicon.tsv")',
     src, count=1)
 assert n == 1, "SLOVENE_USER_LEXICON default not matched"
+src, n = _re.subn(
+    r'"SLOVENE_ENGLISH_WORDS",\s*"[^"]*"',
+    '"SLOVENE_ENGLISH_WORDS", str(_HERE / "lexicon" / "english_words.txt")',
+    src, count=1)
+# Copying english_words.txt into the bundle is not enough on its own: the
+# source module defaults to an absolute path in the service tree, so a bundle
+# unpacked anywhere else looks in the wrong place, loads an empty word list and
+# disables embedded-English detection without saying anything.
+assert n == 1, "SLOVENE_ENGLISH_WORDS default not matched"
 
 # load_lexicon must transparently read .xz so the bundle can ship 12 MB not 81.
 # ONLY load_lexicon (the first occurrence, 4-space indent). load_user_lexicon

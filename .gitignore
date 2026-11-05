@@ -38,3 +38,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Release assets staged locally before upload; published via GitHub Releases.
+.release-assets/

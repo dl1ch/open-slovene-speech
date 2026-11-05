@@ -7,7 +7,7 @@ runnable on ordinary hardware.
 | | model | result |
 |---|---|---|
 | **STT** | Whisper large-v3 + LoRA, fine-tuned on 853 h of ARTUR | **7.77% WER** (18.41% for stock Whisper) |
-| **TTS** | Piper/VITS, 22.05 kHz, single speaker, lexicon-based phonemizer | ~4× realtime on CPU, no GPU needed |
+| **TTS** | Piper/VITS, 22.05 kHz, single speaker, lexicon-based phonemizer | 4–41× realtime on CPU, no GPU needed |
 
 Slovene is a small language with excellent public language resources and almost
 no ready-to-run models built from them. The corpora below already existed; this
@@ -76,12 +76,14 @@ the one that wants a GPU.
 | Python | **3.9+** | `onnxruntime` + `numpy` are the only hard deps |
 | optional | `espeak-ng` | strongly recommended — without it OOV words are dropped |
 
-Measured at roughly **4× realtime on CPU** — one second of audio per 0.25 s of
-compute — on an x86-64 desktop core. A Raspberry Pi 5 will be slower but is
-within range; a Pi 4 has not been tested.
+Speed varies a lot with the CPU. Measured: **~4× realtime** on the reference
+server (an older x86-64 core, which is where the conservative figure in this
+README comes from) and **41× realtime** on an Apple Silicon Mac — 3.96 s of
+audio in 0.10 s. Assume the low end when sizing; you will probably do better.
+A Raspberry Pi 5 is within range; a Pi 4 has not been tested.
 
-Construction decompresses the lexicon and costs about **3 seconds**, so build
-one `SloveneVoice` and keep it. Do not construct one per utterance.
+Construction decompresses the lexicon and costs **2–3 seconds**, so build one
+`SloveneVoice` and keep it. Do not construct one per utterance.
 
 ### Speech to text
 
@@ -322,9 +324,9 @@ assets have a 2 GB per-file limit and cost nothing to skip.
 
 | asset | size | what it is |
 |---|---|---|
-| `slovene-voice.tar.gz` | ~69 MB | TTS bundle: ONNX voice + compressed Sloleks lexicon + runtime |
-| `slovene-whisper-ct2.tar.gz` | ~1.5 GB | STT model, CTranslate2 `int8_float16` |
-| `slovene-whisper-lora.tar.gz` | ~0.2 GB | the LoRA adapter alone, for use with transformers |
+| `slovene-voice.tar.gz` | 68 MiB | TTS bundle: ONNX voice + compressed Sloleks lexicon + runtime |
+| `slovene-whisper-ct2.tar.gz` | 1.23 GiB | STT model, CTranslate2 `int8_float16` |
+| `slovene-whisper-lora.tar.gz` | 112 MiB | the LoRA adapter alone, for use with transformers |
 
 ```bash
 scripts/fetch-models.sh          # downloads and verifies checksums

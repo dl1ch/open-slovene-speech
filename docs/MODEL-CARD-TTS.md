@@ -9,8 +9,8 @@
 | sample rate | 22.05 kHz |
 | voice | single speaker (G0911), 40 h studio recordings |
 | checkpoint | epoch 729, `val_mel` 0.3784 |
-| size | 69 MB bundle (voice + compressed lexicon + runtime) |
-| speed | ~4× realtime on CPU |
+| size | 68 MiB bundle (voice + compressed lexicon + runtime) |
+| speed | 4–41× realtime on CPU, depending on the machine |
 | licence | CC BY-SA 4.0 (see LICENSE-MODELS.md) |
 
 ## What makes this voice different
