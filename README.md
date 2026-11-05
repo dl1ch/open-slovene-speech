@@ -39,7 +39,7 @@ v = SloveneVoice()
 v.to_wav("V Ljubljani je triindvajset stopinj.", "out.wav")
 ```
 
-No piper, no GPU, no special distribution. Python 3.9+ and onnxruntime are
+No piper, no GPU, no special distribution. Python 3.11+ and onnxruntime are
 the whole runtime.
 Install `espeak-ng` as well — see [Why the phonemizer matters](#why-the-phonemizer-matters).
 
@@ -73,7 +73,7 @@ the one that wants a GPU.
 | CPU | any x86-64 or arm64 | no AVX-512, no GPU, no NPU |
 | RAM | **1.5 GB free** | measured peak 1.06 GB — see below |
 | disk | **80 MB** | the extracted bundle is 74 MB |
-| Python | **3.9+** | `onnxruntime` + `numpy` are the only hard deps |
+| Python | **3.11+** | `onnxruntime` + `numpy` are the only hard deps |
 | optional | `espeak-ng` | strongly recommended — without it OOV words are dropped |
 
 **Memory is the real constraint, not disk.** Measured peak RSS on macOS:
