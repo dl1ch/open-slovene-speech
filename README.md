@@ -71,10 +71,24 @@ the one that wants a GPU.
 | | minimum | notes |
 |---|---|---|
 | CPU | any x86-64 or arm64 | no AVX-512, no GPU, no NPU |
-| RAM | **1 GB free** | the 2.9M-form lexicon is held in memory |
-| disk | **200 MB** | 69 MB bundle, ~81 MB lexicon decompressed on first use |
+| RAM | **1.5 GB free** | measured peak 1.06 GB — see below |
+| disk | **80 MB** | the extracted bundle is 74 MB |
 | Python | **3.9+** | `onnxruntime` + `numpy` are the only hard deps |
 | optional | `espeak-ng` | strongly recommended — without it OOV words are dropped |
+
+**Memory is the real constraint, not disk.** Measured peak RSS on macOS:
+
+```
+baseline interpreter         8 MB
+after import                32 MB
+after loading the voice   1017 MB   (2.3 s)
+after synthesising        1059 MB
+```
+
+Almost all of that is the 2,910,359-entry pronunciation lexicon held as a Python
+dict. The `.tsv.xz` is read straight into memory and never decompressed to disk,
+so the cost is RAM, not storage. A 1 GB machine will not fit it; 2 GB is
+comfortable.
 
 Speed varies a lot with the CPU. Measured: **~4× realtime** on the reference
 server (an older x86-64 core, which is where the conservative figure in this
@@ -322,11 +336,15 @@ tidiness: the recogniser is 1.5 GB, GitHub rejects any file over 100 MB, and a
 binary in git history is there forever and is downloaded by every clone. Release
 assets have a 2 GB per-file limit and cost nothing to skip.
 
-| asset | size | what it is |
-|---|---|---|
-| `slovene-voice.tar.gz` | 68 MiB | TTS bundle: ONNX voice + compressed Sloleks lexicon + runtime |
-| `slovene-whisper-ct2.tar.gz` | 1.23 GiB | STT model, CTranslate2 `int8_float16` |
-| `slovene-whisper-lora.tar.gz` | 112 MiB | the LoRA adapter alone, for use with transformers |
+| asset | download | on disk | what it is |
+|---|---|---|---|
+| `slovene-voice.tar.gz` | 68 MiB | **74 MB** | TTS bundle: ONNX voice + compressed Sloleks lexicon + runtime |
+| `slovene-whisper-ct2.tar.gz` | 1.23 GiB | **1.5 GB** | STT model, CTranslate2 `int8_float16` |
+| `slovene-whisper-lora.tar.gz` | 112 MiB | **124 MB** | the LoRA adapter alone, for use with transformers |
+
+The two size columns differ because the assets are gzipped. `1.5 GB on disk`
+elsewhere in this README is the extracted recogniser: `model.bin` alone is
+1,479 MiB.
 
 ```bash
 scripts/fetch-models.sh          # downloads and verifies checksums

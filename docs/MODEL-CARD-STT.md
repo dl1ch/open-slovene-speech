@@ -8,7 +8,7 @@
 | base model | `openai/whisper-large-v3` (1.55 B parameters) |
 | method | LoRA, rank 32, on q/k/v/out projections |
 | training data | ARTUR 1.0, 853 hours |
-| deployed format | CTranslate2, `int8_float16`, 1.5 GB |
+| deployed format | CTranslate2, `int8_float16`, 1.23 GiB download / 1.5 GB on disk |
 | licence | CC BY-SA 4.0 (see LICENSE-MODELS.md) |
 
 ## Performance

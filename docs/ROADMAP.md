@@ -161,7 +161,21 @@ because CLASSLA costs ~5 GB.
   context rules.
 - **Effort:** 1 week for something lightweight.
 
-### 2.7 Prosody beyond declarative
+### 2.7 Shrink the lexicon's memory footprint
+
+The voice needs **~1.06 GB of RAM**, and roughly 980 MB of that is the Sloleks
+lexicon held as a Python dict of 2.9 M entries. The model itself is 60 MB. That
+ratio is what keeps this off small devices: a 1 GB Raspberry Pi cannot run it,
+despite the bundle being 74 MB on disk.
+
+- **What:** store the lexicon as an on-disk structure read without loading it
+  whole — SQLite, a memory-mapped trie, or a sorted file with binary search.
+  Lookups are single-word and random, which all three handle well.
+- **Effort:** 2–3 days, no retraining, no change to the model.
+- **Payoff:** a voice that fits comfortably in 256 MB, which would make it
+  usable on hardware where a 60 MB ONNX model always should have fit.
+
+### 2.8 Prosody beyond declarative
 
 The voice is trained on studio-read declarative speech. Questions, emphasis and
 long narration all sound flat.
