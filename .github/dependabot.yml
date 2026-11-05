@@ -1,0 +1,53 @@
+# Dependabot version updates.
+#
+# Alerts and automated security fixes are enabled in the repository settings;
+# this file is the separate, scheduled check for ordinary version bumps.
+#
+# Deliberately quiet: this project's dependencies are few and stable, and a
+# stream of patch-bump PRs on a model release nobody is actively developing is
+# noise. Minor and patch updates are grouped into one PR per ecosystem; major
+# versions come through on their own, because for onnxruntime and
+# faster-whisper a major bump is a real compatibility question, not a bump.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /tts
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      tts-runtime:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    labels: ["dependencies"]
+
+  - package-ecosystem: pip
+    directory: /serve
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      serving:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    labels: ["dependencies"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns: ["*"]
+    labels: ["dependencies"]
+
+  # The Dockerfile's base is behind `ARG BASE=python:3.11-slim`. Dependabot may
+  # not resolve a templated FROM; if no PRs ever appear here, that is why, and
+  # the base image needs bumping by hand.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    labels: ["dependencies"]
