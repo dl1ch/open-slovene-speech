@@ -8,13 +8,19 @@ on:
 jobs:
   python:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.12 is the floor (numpy 2.5 publishes no wheel below cp312) and 3.13
+        # is current. The bundle is verified running on both.
+        python-version: ["3.12", "3.13"]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
       - name: Syntax check
-        run: python -m compileall -q tts stt scripts
+        run: python -m compileall -q tts stt scripts tools serve
       - name: Install runtime dependencies
         run: pip install --quiet -r tts/requirements.txt
       - name: Import without model files present
