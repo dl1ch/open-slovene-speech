@@ -205,6 +205,17 @@ happening anyway.
 For comparison, the ASR side is far cheaper: ~22 GPU-hours for a full LoRA
 fine-tune, and re-converting to a new CTranslate2 format needs no GPU at all.
 
+> **Tried, 2026-11. It did not help.** Epoch 729 was fine-tuned for 81 epochs
+> with č ʣ ʤ ⁿ ˡ added at ids 166–170, warm-started from the symbols they used
+> to decompose into (č from the mean of t and š). The embedding table was
+> already [256,192], so no surgery was needed; 40 GiB of audio/mel cache was
+> reused, only the phoneme cache regenerated. Result: `val_mel` plateaued at
+> **0.3862 vs 0.3784 baseline** — slightly worse — and in a blind-ish A/B the
+> owner judged the baseline č **cleaner by ear**. So the voice still ships with
+> the rewrite (č → tʃ), which sounds correct. A single-consonant inventory
+> change is not worth a retrain on its own; revisit only inside a larger run
+> (multi-speaker, English phonemes) where the marginal cost is near zero.
+
 - **Effort:** see the table above. The Sloleks half is nearly free once a
   retrain is happening; the English half needs new data and is substantial.
 - **Honest view:** a Slovene-accented rendering of English is also what a
