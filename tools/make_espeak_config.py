@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Produce a config that lets STOCK piper load this voice. Degraded on purpose.
+"""Rewrite the voice config to espeak mode, so OFFICIAL piper can load it.
 
     tools/make_espeak_config.py model/sl_SI-artur-medium.onnx.json
 
@@ -8,13 +8,22 @@ Writes <name>.espeak.onnx.json next to the input.
 WHAT THIS IS FOR
 
 The voice ships with "phoneme_type": "slovene", which upstream piper does not
-know: it parses that field through an Enum, so loading raises ValueError and the
-voice will not start in wyoming-piper, the Home Assistant Piper add-on, or
-openedai-speech.
+know: it parses that field through an Enum, so loading raises ValueError in
+wyoming-piper, the Home Assistant Piper add-on, or openedai-speech. This rewrites
+it to "espeak" so piper loads it.
 
-Sometimes a worse voice inside the stack you already run beats a better voice in
-a container you have to add. This rewrites the config to "espeak" so stock piper
-will load and speak it.
+The SAME config has two very different outcomes depending on what feeds piper:
+
+  WITH the phonemizer proxy (the light stack): the proxy sends text already
+  converted to [[ raw phonemes ]] from the Sloleks lexicon, piper takes its
+  raw-phoneme branch, espeak never runs, and the result is CORRECT. This is the
+  config scripts/fetch-models.sh installs for the official piper container.
+
+  WITHOUT the proxy (stock piper fed plain text): piper falls back to espeak's
+  Slovene G2P, which mis-stresses ~74% of word forms. Usable in a pinch, wrong.
+
+So this is not "degraded on purpose" -- it is the espeak-mode config the light
+stack REQUIRES, which is only degraded when used without the lexicon in front.
 
 WHAT YOU GIVE UP - MEASURED, NOT ESTIMATED
 
@@ -59,15 +68,13 @@ cfg.setdefault("espeak", {}).setdefault("voice", "sl")
 
 # A marker so nobody later wonders why a voice sounds off. Piper ignores keys
 # it does not know, so this travels with the file harmlessly.
-cfg["_degraded"] = {
+cfg["_espeak_mode"] = {
     "original_phoneme_type": was,
-    "warning": ("Stock-piper compatibility config. Phonemised by espeak-ng, NOT "
-                "by the Sloleks lexicon this voice was trained on. Expect "
-                "misplaced lexical stress in ~74% of word forms and ~6.5% of "
-                "phoneme tokens rendered as untrained symbols (notably /r/ and "
-                "/h/). For correct pronunciation use the original config with "
-                "the slovene_voice phonemizer."),
-    "correct_usage": "https://github.com/dl1ch/open-slovene-speech",
+    "note": ("espeak-mode config for the official piper container. CORRECT when "
+             "fed [[ raw phonemes ]] by the Slovene phonemizer proxy (the light "
+             "stack); if fed plain text it falls back to espeak and mis-stresses "
+             "~74% of word forms. See the deployment guide."),
+    "project": "https://github.com/dl1ch/open-slovene-speech",
 }
 
 base = src[:-len(".onnx.json")] if src.endswith(".onnx.json") else os.path.splitext(src)[0]

@@ -316,9 +316,10 @@ which would cut perceived latency in Assist pipelines on long replies.
 
 ### 3.4 Get the phonemizer upstream — the way to drop the self-hosting
 
-`PhonemeType.SLOVENE` does not exist in piper, so no piper-based stack can serve
-this voice correctly. Upstreaming it would remove the need for any server in
-this repository: `wyoming-piper`, the Home Assistant Piper add-on and
+`PhonemeType.SLOVENE` does not exist in piper. The light stack works around that
+with a small phonemizer proxy in front of official piper (verified), but
+upstreaming the phoneme type would remove even that proxy: `wyoming-piper`, the
+Home Assistant Piper add-on and
 `openedai-speech` would all just work.
 
 **The precedent is almost exactly this project.** Current piper

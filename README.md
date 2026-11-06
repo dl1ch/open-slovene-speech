@@ -306,7 +306,7 @@ serve/wyoming_server.py   optional single-container Wyoming server
 scripts/             fetch the weights from the Release
 tools/build_portable.py   rebuild the release bundle (reference host only)
 tools/check_lexicon.py    validate a lexicon against the voice's trained symbols
-tools/make_espeak_config.py  config for stock piper (degraded — see DEPLOYMENT)
+tools/make_espeak_config.py  espeak-mode voice config for the official piper container
 tools/verify_bundle.py    prove a bundle still works after a dependency bump
 tools/eval_fleurs.py      reproduce the out-of-domain evaluation
 docs/evaluation/          the raw CER investigation and decode sweep

@@ -23,10 +23,10 @@ Sloleks 3.1 — 2.9 million word forms, 98.66% token coverage on real text.
 
 **Consequence: the `.onnx` file alone is not usable.** Its input is phoneme IDs,
 not text, and the config declares `"phoneme_type": "slovene"`, which upstream
-piper does not recognise — it raises `ValueError` and refuses to load. Forcing
-the config to `espeak` makes it load and produces fluent speech with the stress
-mostly wrong *and* with phoneme symbols the model never saw in training. Use the
-bundled phonemizer.
+piper does not recognise. The voice is served by pairing official piper with a
+small lexicon phonemizer — either this repo's proxy (the light stack) or the
+`slovene_voice` library. Fed plain text through stock piper's espeak G2P instead,
+it mis-stresses ~74% of words. See the deployment guide.
 
 ## Quality evaluation
 

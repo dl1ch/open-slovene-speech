@@ -54,13 +54,13 @@ disappears and you point Home Assistant straight at `wyoming-piper`.
 
 ### Text to speech
 
-| framework | status |
+| setup | status |
 |---|---|
-| **`serve/openai_api.py`** (this repo) | ✅ correct pronunciation |
-| **`serve/wyoming_server.py`** (this repo) | ✅ correct pronunciation |
+| **official wyoming-piper + phonemizer proxy** (the light stack) | ✅ correct, verified against wyoming-piper 2.5.2 |
 | **`slovene_voice` as a library** | ✅ correct pronunciation |
-| stock **piper** / **wyoming-piper** | ⚠️ refuses to load by default; works via `tools/make_espeak_config.py`, with ~74% of stress wrong |
-| **openedai-speech** | ⚠️ same — it uses piper underneath |
+| **`serve/openai_api.py`** / **`serve/wyoming_server.py`** (optional all-in-one) | ✅ correct pronunciation |
+| stock **piper** / **wyoming-piper** fed plain text (no proxy) | ⚠️ loads via `make_espeak_config.py`, then mis-stresses ~74% |
+| **openedai-speech** | ⚠️ same — it uses piper underneath, no lexicon |
 
 ---
 
@@ -119,10 +119,14 @@ Home Assistant ──text──▶ tts proxy ──[[ipa]]──▶ wyoming-pipe
 an **espeak-mode config** (via `tools/make_espeak_config.py`) so piper takes its
 raw-phoneme branch. You do not edit anything by hand.
 
-What is verified: the proxy turns text into the right `[[ipa]]`, and piper maps
-that to byte-identical phoneme IDs. What is standard-but-your-job-to-confirm:
-that `rhasspy/wyoming-piper` loads the mounted custom voice in your environment
-(custom voices go in its `--data-dir`; this is documented piper behaviour).
+**Verified end to end.** The whole chain was tested against the real
+`wyoming-piper` software (2.5.2, which the official image packages): it loads
+the mounted custom voice and reports `Ready`, the proxy turns text into the
+right `[[ipa]]`, piper maps that to byte-identical phoneme IDs, and audio of the
+correct length comes back — matching a direct render within VITS's stochastic
+variance. The only thing not exercised was the Docker *packaging* itself (no
+container runtime was available on the test host); the software inside the image
+is exactly what was tested.
 
 **Loading the voice into stock piper WITHOUT the proxy** still works but is
 wrong: `tools/make_espeak_config.py` lets stock piper load it, and it will then
