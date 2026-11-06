@@ -1,0 +1,56 @@
+name: publish-image
+
+# Build the OpenAI-compatible server image and the tiny Wyoming phonemizer proxy
+# image, and push both to GHCR. Runs on a version tag and on a published release,
+# so consumers pull a prebuilt image and never build a Dockerfile themselves.
+on:
+  push:
+    tags: ["v*"]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: open-slovene-speech          # the OpenAI-API server
+            dockerfile: Dockerfile
+          - image: open-slovene-speech-proxy     # the tiny Wyoming TTS proxy
+            dockerfile: Dockerfile.proxy
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # the lock pins everything, so this is reproducible across runs

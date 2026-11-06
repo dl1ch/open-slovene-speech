@@ -1,0 +1,45 @@
+# Model weights and lexicons are distributed as Release assets, never committed.
+# The lexicon alone is 81 MB uncompressed and the STT model is 1.5 GB.
+*.onnx
+*.onnx.json
+*.ckpt
+*.safetensors
+*.bin
+*.tar.gz
+*.tsv
+*.tsv.xz
+model/
+models/
+lexicon/
+!tts/lexicon/user_lexicon.example.tsv
+# the 46-symbol inventory, referenced by tools/check_lexicon.py
+!tts/trained_phonemes.tsv
+
+# Audio
+*.wav
+*.mp3
+*.flac
+*.ogg
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Release assets staged locally before upload; published via GitHub Releases.
+.release-assets/

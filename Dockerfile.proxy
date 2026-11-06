@@ -1,0 +1,27 @@
+# The ONLY custom container in the light stack: the Slovene lexicon phonemizer.
+# It does not synthesise or recognise anything — the official wyoming-whisper
+# and wyoming-piper containers do that. This just turns Slovene text into
+# piper's [[ raw phoneme ]] form so the official piper renders it correctly.
+#
+# Tiny on purpose: no onnxruntime, no numpy, no faster-whisper. Python, the
+# Wyoming protocol lib, espeak-ng (OOV fallback), and the lexicon.
+FROM python:3.13-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        espeak-ng \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+RUN pip install --no-cache-dir "wyoming>=1.5.4"
+
+COPY serve/wyoming_phonemize_proxy.py /app/serve/
+COPY tts/slovene_voice /app/tts/slovene_voice
+
+ENV SLOVENE_LEXICON=/lexicon/sl_pronunciation.tsv.xz \
+    SLOVENE_ENGLISH_WORDS=/lexicon/english_words.txt \
+    SLOVENE_NORMALIZE=0 \
+    PROXY_URI=tcp://0.0.0.0:10200 \
+    PIPER_URI=tcp://piper:10200
+
+EXPOSE 10200
+ENTRYPOINT ["python", "/app/serve/wyoming_phonemize_proxy.py"]

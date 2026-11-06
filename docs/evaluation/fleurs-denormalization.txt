@@ -1,0 +1,37 @@
+[nltk_data] Downloading package punkt to /root/nltk_data...
+[nltk_data]   Package punkt is already up-to-date!
+[nltk_data] Downloading package punkt_tab to /root/nltk_data...
+[nltk_data]   Package punkt_tab is already up-to-date!
+  156 digit-bearing utterances of 834 total
+
+  digit-bearing subset (156 utts):
+    CER before denorm : 20.74%
+    CER after  denorm : 6.49%
+    stock on same     : 7.09%
+
+  ALL 834 utterances:
+    CER before denorm : 7.12%  WER 14.53%
+    CER after  denorm : 4.55%  WER 12.72%
+    stock             : 6.25%  WER 20.92%
+
+  5 examples (digit-bearing):
+    ref    po gomi lahko potujete z bodo bodo taksi motor za kratko vožnjo po običajni loka
+    before po gomi lahko potujete z bodo bodo taksi motor za kratko vožnjo po običajni okle
+    after  po gomi lahko potujete z bodo bodo taksi motor za kratko vožnjo po običajni okle
+
+    ref    razkrili so da se bo dokument nanašal na spor glede meja ki jih želi palestina o
+    before razkrili so da se bo dokument nanašal na spor glede meja ki jih želi palestina o
+    after  razkrili so da se bo dokument nanašal na spor glede meja ki jih želi palestina o
+
+    ref    razkrili so da se bo dokument nanašal na spor glede meja ki jih želi palestina o
+    before razkrili so da se bo dokument nanašal na spor glede meja ki jih želi palestina o
+    after  razkrili so da se bo dokument nanašal na spor glede meja ki jih želi palestina o
+
+    ref    leta 2002 je bilo mesto goma uničeno zaradi lave iz ognjenika nyiragongo ki je p
+    before leta dva tisoč dva je bilo mesto goma uničeno zaradi lave iz ognjenika niragongo
+    after  leta 2002 je bilo mesto goma uničeno zaradi lave iz ognjenika niragongo ki je po
+
+    ref    leta 2002 je bilo mesto goma uničeno zaradi lave iz ognjenika nyiragongo ki je p
+    before leta dva tisoč dva je bilo mesto goma uničeno zaradi lave iz ognjenika niragongo
+    after  leta 2002 je bilo mesto goma uničeno zaradi lave iz ognjenika niragongo ki je po
+

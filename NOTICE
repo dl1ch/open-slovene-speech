@@ -1,0 +1,107 @@
+Open Slovene Speech
+Copyright (c) 2026 dl1ch
+
+This product includes software and data developed by third parties. The terms
+below must travel with any redistribution.
+
+===============================================================================
+1. TRAINING DATA AND LEXICON  --  CC BY-SA 4.0  --  ATTRIBUTION REQUIRED
+===============================================================================
+
+ARTUR 1.0 (audio)
+  Verdonik, Darinka; Bizjak, Andreja; Zgank, Andrej; Bernjak, Mitja; Antloga,
+  Spela; Majhenic, Simona; Caks, Peter; Pucer, Matevz; Cvetko, Mitja; Zelenik,
+  Marijana; Pavlic, Jani; Dobrisek, Simon; Krizaj, Janez; Strle, Gregor;
+  Ivanovska, Marija; Grm, Klemen; Bajec, Marko; Lebar Bajec, Iztok; Jelovsek,
+  Tjasa; Lokovsek, Jure; Longyka, Jure; Trojar, Mitja; Zganec Gros, Jerneja;
+  Mihelic, Ales; Vesnicer, Bostjan; Dretnik, Naum; Bordon, David, 2023,
+  ASR database ARTUR 1.0 (audio), Slovenian language resource repository
+  CLARIN.SI, ISSN 2820-4042, http://hdl.handle.net/11356/1776.
+  Licence: CC BY-SA 4.0  (https://creativecommons.org/licenses/by-sa/4.0/)
+
+Morphological Lexicon of Slovene Sloleks 3.1
+  Cibej, Jaka; Gantar, Kaja; Dobrovoljc, Kaja; Krek, Simon; Holozan, Peter;
+  Erjavec, Tomaz; Romih, Miro; Arhar Holdt, Spela; Krsnik, Luka;
+  Robnik-Sikonja, Marko, 2026, Morphological Lexicon of Slovene Sloleks 3.1,
+  Slovenian language resource repository CLARIN.SI,
+  http://hdl.handle.net/11356/2080.
+  Licence: CC BY-SA 4.0  (https://creativecommons.org/licenses/by-sa/4.0/)
+
+artur_studio_tts
+  A 40-hour single-speaker studio subset of ARTUR 1.0, prepared by ppisljar,
+  https://huggingface.co/datasets/ppisljar/artur_studio_tts
+  Card tagged cc-by-3.0; treated here as CC BY-SA 4.0 because it derives from
+  ARTUR 1.0. See LICENSE-MODELS.md.
+
+Slovene Text Denormalizator RSDO-DS2-DENORM 1.0  (bundled, optional)
+  Jelovsek, Tjasa; Lebar Bajec, Iztok; Bajec, Marko; Bajec, Zan; Cvek, Jernej,
+  2022, Faculty of Computer and Information Science, University of Ljubljana.
+  http://hdl.handle.net/11356/1743
+  https://github.com/clarinsi/Slovene_denormalizator
+  Licence: Apache License 2.0
+  Distributed as the release asset slovene-denormalizer.tar (md5
+  53a4894927e9b29d02c30efa729286b2), converts spoken-form ASR output to
+  written form. Depends on nltk (Apache 2.0) and flask (BSD).
+
+RSDO-DS2-NORM  (optional TTS normalisation service, not bundled)
+  http://hdl.handle.net/11356/1742
+  Licence: Apache License 2.0
+
+===============================================================================
+2. SOFTWARE
+===============================================================================
+
+piper  --  https://github.com/rhasspy/piper  --  MIT
+  Copyright (c) 2022 Michael Hansen
+  tts/slovene_voice/ids.py reproduces the phoneme-to-id interleaving from
+  piper's phoneme_ids.py. The model was trained on that exact scheme, so it is
+  a compatibility requirement, not a style choice.
+
+  NOTE ON PROVENANCE: the code reproduced here comes from the MIT-licensed
+  rhasspy/piper. Piper development has since moved to OHF-Voice/piper1-gpl,
+  which is GPL-licensed. No code from the GPL version is used in this project,
+  and the MIT terms above are the ones that apply to what was reproduced.
+
+Whisper  --  https://github.com/openai/whisper  --  MIT
+  Copyright (c) 2022 OpenAI
+  The speech-recognition model is a LoRA fine-tune of whisper-large-v3.
+
+faster-whisper / CTranslate2  --  https://github.com/SYSTRAN/faster-whisper
+  MIT. Used for the deployed int8_float16 conversion.
+
+espeak-ng  --  https://github.com/espeak-ng/espeak-ng  --  GPL-3.0
+  Invoked as a SEPARATE PROCESS through its command-line interface, never
+  linked. It imposes no terms on this code. It is an optional runtime
+  dependency that the user installs themselves, used only as a fallback for
+  words absent from Sloleks (about 1.34% of running text).
+
+===============================================================================
+3. BUNDLED AND INVOKED NATIVE COMPONENTS (in the published container images)
+===============================================================================
+
+These are pulled in by the Python dependencies or installed in the image. None
+imposes copyleft on this project's code; the notes say why.
+
+PyAV  --  bundled FFmpeg  --  LGPL-3.0 (configured --enable-version3, and
+  NOT --enable-gpl, NOT --enable-nonfree; verified on the shipped wheel).
+  Dynamically linked and shipped unmodified, which LGPL permits; no source
+  obligation beyond the library itself. Pulled in by faster-whisper for audio
+  decoding.
+
+FFmpeg (system, via apt in the image)  --  GPL  --  used ONLY as a separate
+  process (ffmpeg CLI) to transcode WAV to MP3 on request. Not linked, so it
+  imposes no terms on this code; it is an optional runtime tool.
+
+espeak-ng (system, via apt)  --  GPL-3.0  --  invoked as a separate process for
+  the ~1.34% of words absent from Sloleks. Not linked. See section 2.
+
+tqdm  --  MPL-2.0 AND MIT  --  transitive dependency (progress bars). MPL is
+  file-level copyleft on tqdm's own sources only; it is used unmodified and
+  imposes nothing on this project.
+
+CTranslate2 (MIT), ONNX Runtime (MIT) bundle their own native code under
+MIT/BSD-family terms.
+
+No dependency, native or Python, is licensed AGPL, SSPL, BUSL, Commons Clause,
+or under any non-commercial or field-of-use restriction. Audited across the full
+58-package dependency tree.

@@ -1,0 +1,41 @@
+name: lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.12 is the floor (numpy 2.5 publishes no wheel below cp312) and 3.13
+        # is current. The bundle is verified running on both.
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Syntax check
+        run: python -m compileall -q tts stt tools serve
+      - name: Install runtime dependencies
+        run: pip install --quiet -r tts/requirements.txt
+      - name: Import without model files present
+        # The package must import cleanly on a machine with no weights, so that
+        # a missing model is a clear runtime error when you synthesise, not an
+        # ImportError at startup.
+        working-directory: tts
+        run: python -c "import slovene_voice; print('ok')"
+
+
+  citation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with: { python-version: "3.13" }
+      - run: pip install --quiet pyyaml
+      - run: python -c "import yaml;yaml.safe_load(open('CITATION.cff'));print('ok')"

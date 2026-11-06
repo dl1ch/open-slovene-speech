@@ -1,0 +1,58 @@
+# Slovene speech. The default is ONE container — the OpenAI-compatible server —
+# which serves STT and TTS to every OpenAI-audio-API client. You pull a prebuilt
+# image; there is nothing to build. Download the models first (see
+# docs/DEPLOYMENT.md "Getting the models").
+#
+#   docker compose up -d                 the OpenAI server on :8080 (all clients)
+#   docker compose --profile wyoming up  HA-native Wyoming stack instead
+services:
+
+  # ── The OpenAI-compatible server: /v1/audio/speech + /v1/audio/transcriptions.
+  # Serves Open WebUI, Hermes, LibreChat directly, and Home Assistant via the
+  # sfortis/openai_tts + NickM-27/hass_local_openai_stt HACS integrations.
+  # Published image — you do not build it.
+  speech:
+    image: ghcr.io/dl1ch/open-slovene-speech:latest
+    # To build locally instead of pulling:
+    #   build: { context: ., dockerfile: Dockerfile }
+    volumes: ["./models:/models:ro"]
+    ports: ["8080:8080"]
+    environment:
+      SLOVENE_STT_DEVICE: cpu       # set to cuda on a GPU host (see the guide)
+      SLOVENE_STT_COMPUTE: int8
+    restart: unless-stopped
+
+  # ── Optional HA-native stack (no HACS integrations needed) ──
+  # Official whisper + official piper + the tiny phonemizer proxy, over Wyoming.
+  # `docker compose --profile wyoming up -d`
+  whisper:
+    profiles: ["wyoming"]
+    image: rhasspy/wyoming-whisper
+    command: >
+      --model /models/slovene-whisper-ct2 --language sl
+      --data-dir /data --uri tcp://0.0.0.0:10300
+    volumes:
+      - ./models/slovene-whisper-ct2:/models/slovene-whisper-ct2:ro
+      - whisper-data:/data
+    ports: ["10300:10300"]
+    restart: unless-stopped
+
+  piper:
+    profiles: ["wyoming"]
+    image: rhasspy/wyoming-piper
+    command: --voice sl_SI-artur-medium --data-dir /voice --uri tcp://0.0.0.0:10200
+    volumes: ["./models/piper-voice:/voice:ro"]
+    restart: unless-stopped
+
+  tts-proxy:
+    profiles: ["wyoming"]
+    image: ghcr.io/dl1ch/open-slovene-speech-proxy:latest
+    # build: { context: ., dockerfile: Dockerfile.proxy }
+    command: --uri tcp://0.0.0.0:10200 --piper-uri tcp://piper:10200
+    volumes: ["./models/slovene-voice/lexicon:/lexicon:ro"]
+    ports: ["10200:10200"]
+    depends_on: [piper]
+    restart: unless-stopped
+
+volumes:
+  whisper-data:
