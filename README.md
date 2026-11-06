@@ -301,9 +301,6 @@ stt/transcribe.py    a minimal recogniser example
 serve/wyoming_phonemize_proxy.py  the ONLY custom server: text -> [[ipa]] -> piper
 Dockerfile.proxy     the tiny image for that proxy (no onnxruntime/GPU)
 docker-compose.yml   official whisper + official piper + the proxy
-serve/openai_api.py  optional all-in-one OpenAI API (Open WebUI, LibreChat)
-serve/wyoming_server.py   optional single-container Wyoming server
-scripts/             fetch the weights from the Release
 tools/build_portable.py   rebuild the release bundle (reference host only)
 tools/check_lexicon.py    validate a lexicon against the voice's trained symbols
 tools/make_espeak_config.py  espeak-mode voice config for the official piper container
@@ -344,8 +341,10 @@ or a stock `openedai-speech` container — cannot serve this voice.
 
 ## Deploying
 
+Download the models (one time), then start the stack:
+
 ```bash
-scripts/fetch-models.sh
+# see docs/DEPLOYMENT.md "Getting the models" for the three tarballs
 docker compose up -d
 ```
 
@@ -355,19 +354,21 @@ Slovene lexicon phonemization. Add two Wyoming integrations in Home Assistant �
 `host:10300` for STT, `host:10200` for TTS.
 
 **STT needs nothing custom at all** — it is an ordinary CTranslate2 Whisper
-model; `docker compose` just mounts it into the official container, or point your
-existing Whisper add-on at `models/slovene-whisper-ct2/`.
+model; `docker compose` mounts it into the official container, or point your
+existing Whisper add-on at `models/slovene-whisper-ct2/`. (STT and TTS are
+independent Wyoming services, so the Whisper add-on and this TTS proxy work
+together fine.)
 
 **TTS** uses the official piper for synthesis; the proxy exists only because no
 TTS server ships a Slovene lexicon phonemizer. It converts text to piper's
-`[[ raw phoneme ]]` form — verified byte-identical to a built-in phonemizer — so
-official piper renders it correctly. When a Slovene phoneme type lands upstream
-in piper, even the proxy goes away.
+`[[ raw phoneme ]]` form — verified byte-identical to a built-in phonemizer, and
+tested end to end against wyoming-piper — so official piper renders it correctly.
+When a Slovene phoneme type lands upstream in piper, even the proxy goes away.
 
-For Open WebUI / an OpenAI audio API, `docker compose --profile openai up -d`
-runs a single self-contained server on `:8080` instead.
+The stack is **Wyoming only** (Home Assistant). For Open WebUI / OpenAI-audio-API
+clients there is no ready endpoint any more; see the deployment guide.
 
-Full guide, including the single-container alternative: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+Full guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 ---
 
@@ -392,7 +393,7 @@ elsewhere in this README is the extracted recogniser: `model.bin` alone is
 1,479 MiB.
 
 ```bash
-scripts/fetch-models.sh          # downloads and verifies checksums
+# download the three tarballs — see docs/DEPLOYMENT.md "Getting the models"
 ```
 
 ---

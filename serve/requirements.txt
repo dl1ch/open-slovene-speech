@@ -1,29 +1,5 @@
-# MINIMUMS for the serving stack. For reproducible container builds use
-# requirements.lock in this directory, which pins exact versions.
-#
-# These floors need Python 3.11+ (onnxruntime 1.31, python-multipart 0.0.33).
-# The portable TTS bundle does NOT: see tts/requirements.txt, which stays
-# permissive so the voice keeps running on 3.9.
-#
-# Shared serving dependencies. Install only what you need:
-#   OpenAI-compatible HTTP API   fastapi uvicorn python-multipart
-#   Home Assistant (Wyoming)     wyoming
-#   TTS                          onnxruntime numpy   (see tts/requirements.txt)
-#   STT                          faster-whisper
-fastapi>=0.162.0
-uvicorn[standard]>=0.54.0
-python-multipart>=0.0.33
-wyoming>=1.10.2
-faster-whisper>=1.2.1
-# UPPER BOUND, and not a precaution. faster-whisper 1.2.1 declares `av>=11`
-# with no ceiling, but PyAV 19 removed the `metadata_errors` argument that
-# faster_whisper/audio.py passes to av.open(). The result installs cleanly and
-# raises TypeError on the first transcription, so a container builds green and
-# fails in production. Verified: av 18.0.0 and below work, 19.0.2 does not.
-# Remove this once faster-whisper ships a fix or its own bound.
-av>=11,<19
-onnxruntime>=1.31.1
-numpy>=2.5.4
-# RSDO denormaliser (optional ASR post-processing, Apache 2.0)
-nltk>=3.8
-flask-restx>=1.3
+# The phonemizer proxy's only dependency. Everything else it needs is stdlib
+# plus the espeak-ng CLI (installed in Dockerfile.proxy). The proxy does no
+# model inference — official wyoming-piper does that — so no onnxruntime,
+# numpy or faster-whisper here.
+wyoming>=1.5.4

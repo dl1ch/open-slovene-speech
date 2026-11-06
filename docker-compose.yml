@@ -1,8 +1,7 @@
 # The light stack: official containers do all the heavy lifting; the only custom
-# piece is a tiny phonemizer proxy. Fetch the models first: scripts/fetch-models.sh
+# piece is a tiny phonemizer proxy. Download the models first — see docs/DEPLOYMENT.md
 #
 #   docker compose up -d                 Home Assistant stack (STT + TTS, Wyoming)
-#   docker compose --profile openai up   OpenAI-compatible all-in-one (Open WebUI)
 services:
 
   # ── Speech to text ─ official container, our model mounted. No custom code. ──
@@ -34,16 +33,6 @@ services:
       - ./models/slovene-voice/lexicon:/lexicon:ro
     ports: ["10200:10200"]
     depends_on: [piper]
-    restart: unless-stopped
-
-  # ── Optional: OpenAI-compatible all-in-one for Open WebUI / LibreChat. ──
-  # A single self-contained server (our onnxruntime synth + faster-whisper).
-  # Heavier, but one container and speaks /v1/audio/*.
-  openai:
-    profiles: ["openai"]
-    build: { context: ., dockerfile: Dockerfile }
-    volumes: ["./models:/models:ro"]
-    ports: ["8080:8080"]
     restart: unless-stopped
 
 volumes:

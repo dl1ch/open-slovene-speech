@@ -18,7 +18,7 @@ phonemizer. There is no heavy bespoke server to maintain.
 | **TTS phonemization** | a ~90-line proxy (`Dockerfile.proxy`) | one small piece |
 
 ```bash
-scripts/fetch-models.sh
+# one-time model setup — see "Getting the models" below
 docker compose up -d          # Home Assistant stack: STT :10300, TTS :10200
 ```
 
@@ -37,6 +37,33 @@ lexicon and does string work: no model, no onnxruntime, no GPU.
 
 When a `PhonemeType.SLOVENE` lands upstream in piper (roadmap 3.4), even this
 disappears and you point Home Assistant straight at `wyoming-piper`.
+
+## Getting the models
+
+There is no fetch script; the models are three release assets you download and
+unpack into `models/`. Everything below assumes you run it from the repo root.
+
+```bash
+mkdir -p models && cd models
+base=https://github.com/dl1ch/open-slovene-speech/releases/latest/download
+
+# the voice (ONNX + Sloleks lexicon) and the recogniser
+curl -LO $base/slovene-voice.tar.gz        && tar xzf slovene-voice.tar.gz
+curl -LO $base/slovene-whisper-ct2.tar.gz  && tar xzf slovene-whisper-ct2.tar.gz
+curl -LO $base/SHA256SUMS
+sha256sum -c SHA256SUMS 2>/dev/null | grep -E "voice|ct2"   # verify
+
+# build the espeak-mode voice the official piper container serves
+mkdir -p piper-voice
+cp slovene-voice/model/sl_SI-artur-medium.onnx piper-voice/
+python3 ../tools/make_espeak_config.py slovene-voice/model/sl_SI-artur-medium.onnx.json
+cp slovene-voice/model/sl_SI-artur-medium.espeak.onnx.json \
+   piper-voice/sl_SI-artur-medium.onnx.json
+cd ..
+```
+
+That leaves `models/slovene-whisper-ct2/`, `models/slovene-voice/` and
+`models/piper-voice/` — exactly what `docker-compose.yml` mounts.
 
 ## Compatibility
 
@@ -58,7 +85,6 @@ disappears and you point Home Assistant straight at `wyoming-piper`.
 |---|---|
 | **official wyoming-piper + phonemizer proxy** (the light stack) | ✅ correct, verified against wyoming-piper 2.5.2 |
 | **`slovene_voice` as a library** | ✅ correct pronunciation |
-| **`serve/openai_api.py`** / **`serve/wyoming_server.py`** (optional all-in-one) | ✅ correct pronunciation |
 | stock **piper** / **wyoming-piper** fed plain text (no proxy) | ⚠️ loads via `make_espeak_config.py`, then mis-stresses ~74% |
 | **openedai-speech** | ⚠️ same — it uses piper underneath, no lexicon |
 
@@ -115,9 +141,9 @@ Home Assistant ──text──▶ tts proxy ──[[ipa]]──▶ wyoming-pipe
                          (lexicon)               (official)
 ```
 
-`scripts/fetch-models.sh` prepares `models/piper-voice/` — the voice ONNX plus
-an **espeak-mode config** (via `tools/make_espeak_config.py`) so piper takes its
-raw-phoneme branch. You do not edit anything by hand.
+The model setup above prepares `models/piper-voice/` — the voice ONNX plus an
+**espeak-mode config** (via `tools/make_espeak_config.py`) so piper takes its
+raw-phoneme branch.
 
 **Verified end to end.** The whole chain was tested against the real
 `wyoming-piper` software (2.5.2, which the official image packages): it loads
@@ -136,7 +162,6 @@ lexicon phonemes.
 ## Home Assistant
 
 ```bash
-scripts/fetch-models.sh
 docker compose up -d
 ```
 
@@ -151,6 +176,15 @@ Integration → Wyoming Protocol**, twice:
 
 Both appear for any Assist pipeline under **Settings → Voice assistants**.
 
+### Numbers come out as words
+
+The light-stack STT is the raw official container, so numbers are transcribed as
+words (*dva tisoč dva*, not *2002*). For Home Assistant voice commands this is
+fine — the intent handler reads either form. If you need written-form numbers
+(subtitles, notes), run the output through `stt/transcribe.py`, which applies the
+RSDO denormalizer, or apply it in your own pipeline. The denormalizer is not
+wired into the official container — it lived in the removed servers.
+
 ### STT alone, via the existing Whisper add-on
 
 If you already run the **Whisper** add-on (wyoming-faster-whisper), skip our
@@ -161,50 +195,32 @@ For TTS, the **Piper add-on cannot** serve this voice on its own: it has no
 Slovene lexicon phonemizer. Use the `docker compose` stack above, whose piper
 container *is* the official piper — just fronted by the phonemizer proxy.
 
-### Single-container alternative
-
-If you would rather run one container than three, `serve/openai_api.py` (the
-`openai` compose profile) and `serve/wyoming_server.py` are self-contained
-servers that do everything in-process with no official containers. Heavier, but
-one moving part. The light stack above is the recommended default.
-
 ### A note on Assist pipelines
 
-Set the pipeline language to Slovene. The recogniser is pinned to `sl` in these
-servers deliberately: it is specialised to Slovene, and letting Whisper
-auto-detect on a short or noisy command is a reliable way to get the wrong
-language.
+Set the pipeline language to Slovene, and pass `--language sl` to the whisper
+container (the compose file does). The model is specialised to Slovene, and
+letting Whisper auto-detect on a short or noisy command is a reliable way to get
+the wrong language.
 
 ---
 
-## Open WebUI
+## Open WebUI and other OpenAI-API clients
 
-Open WebUI speaks the OpenAI audio API, which is what `serve/openai_api.py`
-implements.
+The shipped stack is **Wyoming only** (for Home Assistant). Open WebUI and
+LibreChat speak the OpenAI *audio* API, and this repository no longer ships an
+OpenAI-compatible server — that was the single-container path, now removed.
 
-```bash
-scripts/fetch-models.sh
-docker compose up -d api
-```
+Two ways to serve those clients:
 
-In Open WebUI, **Settings → Audio**:
+- **STT**: run **Speaches** (OpenAI-compatible, faster-whisper backend) and point
+  it at `models/slovene-whisper-ct2`. It is an ordinary Whisper model.
+- **TTS**: there is no ready OpenAI TTS endpoint for this voice. The
+  `slovene_voice` Python library (below) gives you synthesis in a few lines, so a
+  ~20-line FastAPI wrapper over `/v1/audio/speech` is straightforward if you need
+  one. The voice needs the lexicon phonemizer either way.
 
-| setting | value |
-|---|---|
-| STT Engine | OpenAI |
-| STT Base URL | `http://<host>:8080/v1` |
-| STT Model | `slovene-stt` |
-| TTS Engine | OpenAI |
-| TTS Base URL | `http://<host>:8080/v1` |
-| TTS Model | `slovene-tts` |
-| TTS Voice | `artur` |
-
-The API key field is not checked by this server; put anything in it.
-
-If Open WebUI runs in its own container, `localhost` will not reach the host —
-use the host's LAN address, or `host.docker.internal` where that is available.
-
----
+If Open WebUI matters more to you than Home Assistant, say so — a small OpenAI
+TTS shim is easy to add back; it was removed to keep the default surface minimal.
 
 ## Anything else that speaks the OpenAI audio API
 

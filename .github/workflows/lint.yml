@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Syntax check
-        run: python -m compileall -q tts stt scripts tools serve
+        run: python -m compileall -q tts stt tools serve
       - name: Install runtime dependencies
         run: pip install --quiet -r tts/requirements.txt
       - name: Import without model files present
@@ -30,11 +30,6 @@ jobs:
         working-directory: tts
         run: python -c "import slovene_voice; print('ok')"
 
-  shell:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - run: bash -n scripts/fetch-models.sh
 
   citation:
     runs-on: ubuntu-latest

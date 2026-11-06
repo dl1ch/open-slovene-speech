@@ -305,9 +305,9 @@ GHCR so nobody has to build locally, and adding a CUDA image for the recogniser.
 
 ### 3.3 OpenAI-compatible and Wyoming endpoints — ✅ done
 
-`serve/openai_api.py` implements `/v1/audio/speech` and
-`/v1/audio/transcriptions`; `serve/wyoming_server.py` implements the Wyoming
-protocol for Home Assistant.
+`serve/wyoming_phonemize_proxy.py` fronts official wyoming-piper for Home
+Assistant; the OpenAI-compatible all-in-one server was removed to keep the
+default surface minimal.
 
 Remaining: streaming synthesis over Wyoming (`supports_synthesize_streaming`),
 which would cut perceived latency in Assist pipelines on long replies.

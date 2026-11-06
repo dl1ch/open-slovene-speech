@@ -21,8 +21,7 @@ updates:
     open-pull-requests-limit: 3
     labels: ["dependencies"]
 
-  # /serve is the container's stack and is pinned by requirements.lock, so
-  # bumps here are safe to take.
+  # /serve holds just the proxy's one dependency (wyoming).
   - package-ecosystem: pip
     directory: /serve
     schedule:

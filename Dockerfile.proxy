@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-RUN pip install --no-cache-dir "wyoming>=1.5.4"
+COPY serve/requirements.txt /app/serve/requirements.txt
+RUN pip install --no-cache-dir -r /app/serve/requirements.txt
 
 COPY serve/wyoming_phonemize_proxy.py /app/serve/
 COPY tts/slovene_voice /app/tts/slovene_voice

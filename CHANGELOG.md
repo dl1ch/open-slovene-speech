@@ -28,8 +28,6 @@ First public release.
 - Model cards for both models, including their out-of-scope uses.
 - Training documentation covering three data bugs that cost two training days
   and were invisible in the loss curve.
-- An OpenAI-compatible HTTP API (`/v1/audio/speech`,
-  `/v1/audio/transcriptions`) for Open WebUI, LibreChat and similar.
-- A Wyoming protocol server, so Home Assistant discovers both models as
-  Assist-pipeline services.
-- Dockerfile and compose file, CPU by default with a CUDA profile.
+- A Wyoming phonemizer proxy that fronts official wyoming-piper, so Home
+  Assistant discovers the voice as an Assist-pipeline service (STT is the
+  official wyoming-whisper container, nothing custom).
