@@ -7,7 +7,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 First public release.
 
+### Changed
+- Renamed the TTS voice `sl_SI-artur-medium` → **`sl_SI-artur-sloleks-medium`**
+  to end the naming collision with the upstream rhasspy voice of the same name,
+  and to name the one thing that differs (Sloleks vs. espeak phonemization). The
+  release asset `slovene-voice.tar.gz` and `SHA256SUMS` were updated in place.
+
 ### Added
+- Documented the provenance and the A/B stress comparison against the upstream
+  espeak voice (`docs/evaluation/stress-comparison.md`), with verified phoneme
+  divergences and audio samples (`stress-comparison-samples.tar.gz` release
+  asset). Credited the Czech warmstart base `cs_CZ-jirka` in NOTICE.
 - Light serving stack: the models now run in **official** containers
   (`rhasspy/wyoming-whisper`, `rhasspy/wyoming-piper`), with the only custom
   code a ~90-line phonemizer proxy (`serve/wyoming_phonemize_proxy.py`,

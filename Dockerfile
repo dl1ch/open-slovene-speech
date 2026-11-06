@@ -39,7 +39,7 @@ COPY NOTICE LICENSE LICENSE-MODELS.md /app/
 # The package lives under tts/, and the voice resolves its model and lexicon
 # relative to that directory.
 ENV PYTHONPATH=/app/tts \
-    SLOVENE_VOICE_MODEL=/models/slovene-voice/model/sl_SI-artur-medium.onnx \
+    SLOVENE_VOICE_MODEL=/models/slovene-voice/model/sl_SI-artur-sloleks-medium.onnx \
     SLOVENE_LEXICON=/models/slovene-voice/lexicon/sl_pronunciation.tsv.xz \
     SLOVENE_USER_LEXICON=/models/slovene-voice/lexicon/user_lexicon.tsv \
     SLOVENE_ENGLISH_WORDS=/models/slovene-voice/lexicon/english_words.txt \

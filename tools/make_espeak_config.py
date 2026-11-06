@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Rewrite the voice config to espeak mode, so OFFICIAL piper can load it.
 
-    tools/make_espeak_config.py model/sl_SI-artur-medium.onnx.json
+    tools/make_espeak_config.py model/sl_SI-artur-sloleks-medium.onnx.json
 
 Writes <name>.espeak.onnx.json next to the input.
 
@@ -17,7 +17,7 @@ The SAME config has two very different outcomes depending on what feeds piper:
   WITH the phonemizer proxy (the light stack): the proxy sends text already
   converted to [[ raw phonemes ]] from the Sloleks lexicon, piper takes its
   raw-phoneme branch, espeak never runs, and the result is CORRECT. This is the
-  config scripts/fetch-models.sh installs for the official piper container.
+  config the deployment guide installs for the official piper container.
 
   WITHOUT the proxy (stock piper fed plain text): piper falls back to espeak's
   Slovene G2P, which mis-stresses ~74% of word forms. Usable in a pinch, wrong.

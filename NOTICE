@@ -33,6 +33,15 @@ artur_studio_tts
   Card tagged cc-by-3.0; treated here as CC BY-SA 4.0 because it derives from
   ARTUR 1.0. See LICENSE-MODELS.md.
 
+Warmstart base — Piper voice cs_CZ-jirka (model initialisation)
+  Michael Hansen and contributors, from https://github.com/rhasspy/piper-voices
+  (voice cs_CZ/jirka/medium). Used as the transfer-learning starting checkpoint
+  for this voice's training — a standard related-language warmstart for a medium
+  VITS model. The released Slovene weights are dominated by training on ARTUR /
+  Sloleks but derive from this checkpoint. This project's voice is an INDEPENDENT
+  sibling of the upstream Slovene voice sl_SI-artur-medium, NOT retrained from
+  it. The resulting weights are released under CC BY-SA 4.0 (see LICENSE-MODELS.md).
+
 Slovene Text Denormalizator RSDO-DS2-DENORM 1.0  (bundled, optional)
   Jelovsek, Tjasa; Lebar Bajec, Iztok; Bajec, Marko; Bajec, Zan; Cvek, Jernej,
   2022, Faculty of Computer and Information Science, University of Ljubljana.

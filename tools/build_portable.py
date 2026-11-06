@@ -38,7 +38,7 @@ import sys
 # environment variable, and the script says what is missing rather than
 # silently reading from somewhere that happens to exist.
 SRC = os.environ.get("PIPER_PKG")        # the PATCHED piper package directory
-MODEL_SRC = os.environ.get("MODEL_SRC")  # holds sl_SI-artur-medium.onnx[.json]
+MODEL_SRC = os.environ.get("MODEL_SRC")  # holds sl_SI-artur-sloleks-medium.onnx[.json]
 LEX_SRC = os.environ.get("LEX_SRC")      # holds sl_pronunciation.tsv et al.
 OUT = os.environ.get("BUNDLE_OUT", "./slovene-voice")
 PKG = os.path.join(OUT, "slovene_voice")
@@ -174,7 +174,7 @@ from .phonemize import SlovenePhonemizer
 
 _HERE = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL = os.environ.get(
-    "SLOVENE_VOICE_MODEL", str(_HERE / "model" / "sl_SI-artur-medium.onnx"))
+    "SLOVENE_VOICE_MODEL", str(_HERE / "model" / "sl_SI-artur-sloleks-medium.onnx"))
 
 
 class SloveneVoice:
@@ -241,7 +241,7 @@ if __name__ == "__main__":
 ''')
 
 # --- 4. assets -------------------------------------------------------------
-for f in ("sl_SI-artur-medium.onnx", "sl_SI-artur-medium.onnx.json"):
+for f in ("sl_SI-artur-sloleks-medium.onnx", "sl_SI-artur-sloleks-medium.onnx.json"):
     shutil.copy2(os.path.join(MODEL_SRC, f), os.path.join(OUT, "model", f))
 shutil.copy2(os.path.join(LEX_SRC, "user_lexicon.tsv"),
              os.path.join(OUT, "lexicon", "user_lexicon.tsv"))

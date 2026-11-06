@@ -40,7 +40,7 @@ services:
   piper:
     profiles: ["wyoming"]
     image: rhasspy/wyoming-piper
-    command: --voice sl_SI-artur-medium --data-dir /voice --uri tcp://0.0.0.0:10200
+    command: --voice sl_SI-artur-sloleks-medium --data-dir /voice --uri tcp://0.0.0.0:10200
     volumes: ["./models/piper-voice:/voice:ro"]
     restart: unless-stopped
 

@@ -12,7 +12,7 @@ from .phonemize import SlovenePhonemizer
 
 _HERE = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL = os.environ.get(
-    "SLOVENE_VOICE_MODEL", str(_HERE / "model" / "sl_SI-artur-medium.onnx"))
+    "SLOVENE_VOICE_MODEL", str(_HERE / "model" / "sl_SI-artur-sloleks-medium.onnx"))
 
 
 class SloveneVoice:

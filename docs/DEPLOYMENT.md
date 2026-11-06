@@ -67,10 +67,10 @@ sha256sum -c SHA256SUMS 2>/dev/null | grep -E "voice|ct2"   # verify
 
 # build the espeak-mode voice the official piper container serves
 mkdir -p piper-voice
-cp slovene-voice/model/sl_SI-artur-medium.onnx piper-voice/
-python3 ../tools/make_espeak_config.py slovene-voice/model/sl_SI-artur-medium.onnx.json
-cp slovene-voice/model/sl_SI-artur-medium.espeak.onnx.json \
-   piper-voice/sl_SI-artur-medium.onnx.json
+cp slovene-voice/model/sl_SI-artur-sloleks-medium.onnx piper-voice/
+python3 ../tools/make_espeak_config.py slovene-voice/model/sl_SI-artur-sloleks-medium.onnx.json
+cp slovene-voice/model/sl_SI-artur-sloleks-medium.espeak.onnx.json \
+   piper-voice/sl_SI-artur-sloleks-medium.onnx.json
 cd ..
 ```
 

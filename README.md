@@ -260,6 +260,34 @@ without espeak : Predsednik je obiskal ljubljano.
 
 ---
 
+## Relationship to the upstream rhasspy voice
+
+There is already a Slovene Piper voice —
+[`sl_SI-artur-medium`](https://huggingface.co/rhasspy/piper-voices/tree/main/sl/sl_SI/artur/medium)
+in `rhasspy/piper-voices`. This project's voice, `sl_SI-artur-sloleks-medium`,
+is a **sibling of it, not a derivative.** Both are trained on the same
+`artur_studio_tts` audio, with the same single speaker and the same
+architecture. They differ in exactly one thing: the upstream voice phonemizes
+with **espeak-ng**, this one with the **Sloleks lexicon**.
+
+- It was **not retrained from the upstream model.** The upstream `.onnx` is
+  inference-only (not trainable) and the upstream training checkpoint was never
+  published; this voice was trained independently and warmstarted from the Piper
+  Czech voice `cs_CZ-jirka` (credited in [NOTICE](NOTICE)).
+- The `sloleks` in the name ends the collision with the upstream voice and names
+  the one thing that differs.
+
+Because only the phonemizer differs, it is close to a controlled experiment. A
+documented A/B listening test —
+[docs/evaluation/stress-comparison.md](docs/evaluation/stress-comparison.md) —
+shows the honest picture: on everyday high-frequency words the two voices sound
+close (the model learns prosody from the audio), but on less-common and
+technical words, where espeak mis-places the lexical stress, the Sloleks voice
+is correct and the espeak voice is not. The evidence is the deterministic
+phoneme divergence, with audio samples published as a release asset.
+
+---
+
 ## Limitations
 
 Stated up front, because each one is a real boundary and not a to-do list.

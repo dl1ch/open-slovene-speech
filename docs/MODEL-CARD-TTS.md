@@ -28,6 +28,30 @@ small lexicon phonemizer — either this repo's proxy (the light stack) or the
 `slovene_voice` library. Fed plain text through stock piper's espeak G2P instead,
 it mis-stresses ~74% of words. See the deployment guide.
 
+## Provenance and relationship to the upstream voice
+
+There is an existing Slovene Piper voice, `sl_SI-artur-medium`, in
+[`rhasspy/piper-voices`](https://huggingface.co/rhasspy/piper-voices/tree/main/sl/sl_SI/artur/medium).
+This voice is a **sibling of it, not a derivative.** The two share the same
+training audio (`artur_studio_tts`), the same single speaker, and the same
+architecture; they differ in **one variable** — the upstream voice phonemizes
+with espeak-ng, this one with the Sloleks lexicon.
+
+- It was **not retrained from the upstream `.onnx`.** An `.onnx` is
+  inference-only and cannot be trained further, and the upstream *training*
+  checkpoint was never published. This model was trained independently.
+- It was **warmstarted from the Piper Czech voice `cs_CZ-jirka`** (Michael
+  Hansen / rhasspy), a standard related-language transfer-learning start for a
+  medium VITS voice. The final weights are dominated by Slovene training but
+  derive from that checkpoint; it is credited in [NOTICE](../NOTICE).
+- It is **renamed** to `sl_SI-artur-sloleks-medium` precisely to end the naming
+  collision with the upstream voice — the `sloleks` tag names the one thing that
+  differs.
+
+A documented A/B listening test showing where the phonemizer difference is
+audible (and where it is not) is in
+[docs/evaluation/stress-comparison.md](evaluation/stress-comparison.md).
+
 ## Quality evaluation
 
 There is no reliable automatic metric here, and the reason is worth repeating:

@@ -78,7 +78,7 @@ def build_info():
         name="slovene-tts",
         description="Slovene voice (lexicon phonemizer + piper)",
         attribution=ATTR, installed=True, version="1.0",
-        voices=[TtsVoice(name="sl_SI-artur-medium",
+        voices=[TtsVoice(name="sl_SI-artur-sloleks-medium",
                          description="Slovene, single speaker, 22.05 kHz",
                          attribution=ATTR, installed=True, version="1.0",
                          languages=["sl", "sl_SI"],
