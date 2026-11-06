@@ -21,7 +21,7 @@ faster-whisper>=1.2.1
 # raises TypeError on the first transcription, so a container builds green and
 # fails in production. Verified: av 18.0.0 and below work, 19.0.2 does not.
 # Remove this once faster-whisper ships a fix or its own bound.
-av>=11,<19
+av>=19.0.2,<20
 onnxruntime>=1.31.1
 numpy>=2.5.4
 # RSDO denormaliser (optional ASR post-processing, Apache 2.0)
