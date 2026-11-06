@@ -6,29 +6,37 @@ important thing on this page.
 
 ---
 
-## Read this first: the voice needs its own phonemizer
+## The short version
 
-The recogniser is a plain Whisper fine-tune. Drop it into any Whisper runtime
-and it behaves exactly as you expect.
+Both models run in **official containers**; the only custom code is one tiny
+phonemizer. There is no heavy bespoke server to maintain.
 
-**The voice is different.** It was trained on lexicon-derived pronunciations,
-not espeak ones, because espeak-ng places Slovene lexical stress on the wrong
-syllable in about **74% of word forms**.
+| | container | custom code |
+|---|---|---|
+| **STT** | official `rhasspy/wyoming-whisper`, model mounted | **none** |
+| **TTS synthesis** | official `rhasspy/wyoming-piper`, voice mounted | **none** |
+| **TTS phonemization** | a ~90-line proxy (`Dockerfile.proxy`) | one small piece |
 
-Its config declares `"phoneme_type": "slovene"`, which upstream piper does not
-know. Piper parses that field with `PhonemeType(config.get("phoneme_type", ...))`,
-so an unknown value raises `ValueError` — **stock piper refuses to load this
-voice at all.** That is the good case: it fails loudly at startup rather than
-sounding subtly wrong.
+```bash
+scripts/fetch-models.sh
+docker compose up -d          # Home Assistant stack: STT :10300, TTS :10200
+```
 
-The bad case is editing the config to say `espeak` to make it load. It will then
-run, and be wrong in two ways at once: the stress will be misplaced, and the
-phoneme *symbols* will be espeak's rather than the Sloleks notation the model was
-trained on (`ʧ`, `ʦ`, `u̯`, `ɾ` …), which the model has never seen. Don't.
+### Why one custom piece remains
 
-Use the servers in `serve/`, which carry the phonemizer.
+The voice needs Slovene **lexicon** phonemization — espeak mis-stresses ~74% of
+Slovene words, so the voice was trained on dictionary pronunciations. No TTS
+server, piper included, ships a Slovene lexicon phonemizer, and piper has no
+plugin hook to add one. So the lexicon lookup has to run *somewhere*.
 
----
+The trick that keeps it tiny: piper accepts `[[ raw phonemes ]]` in its input,
+and — **verified byte-identical** — feeding it our lexicon's output that way
+produces exactly what a built-in Slovene phonemizer would. So the custom piece
+is just text → `[[ipa]]`; the official piper does the synthesis. It holds the
+lexicon and does string work: no model, no onnxruntime, no GPU.
+
+When a `PhonemeType.SLOVENE` lands upstream in piper (roadmap 3.4), even this
+disappears and you point Home Assistant straight at `wyoming-piper`.
 
 ## Compatibility
 
@@ -96,84 +104,65 @@ The same mounted directory works with Speaches, WhisperX, and
 the Speaches docs describe mounting a Hugging Face cache rather than a model
 directory, so check its configuration before assuming.
 
-### Text to speech — possible, but degraded
+### Text to speech — official piper plus the phonemizer proxy
 
-By default stock piper refuses this voice outright: its config says
-`"phoneme_type": "slovene"`, which upstream parses through an Enum, so loading
-raises `ValueError`.
+The official `wyoming-piper` renders the voice correctly, **provided the text
+reaches it already phonemized** as `[[ ipa ]]`. The proxy does exactly that, so
+the compose file wires them together:
 
-You can override that, and sometimes you should. A worse voice inside the stack
-you already run can beat a better voice in a container you have to add:
-
-```bash
-tools/make_espeak_config.py models/slovene-voice/model/sl_SI-artur-medium.onnx.json
-# -> sl_SI-artur-medium.espeak.onnx.json
+```
+Home Assistant ──text──▶ tts proxy ──[[ipa]]──▶ wyoming-piper ──audio──▶ back
+                         (lexicon)               (official)
 ```
 
-Copy that alongside the `.onnx` (renaming it to match), and `wyoming-piper`, the
-Home Assistant Piper add-on and `openedai-speech` will all load and speak it.
+`scripts/fetch-models.sh` prepares `models/piper-voice/` — the voice ONNX plus
+an **espeak-mode config** (via `tools/make_espeak_config.py`) so piper takes its
+raw-phoneme branch. You do not edit anything by hand.
 
-**What it costs — measured, not guessed:**
+What is verified: the proxy turns text into the right `[[ipa]]`, and piper maps
+that to byte-identical phoneme IDs. What is standard-but-your-job-to-confirm:
+that `rhasspy/wyoming-piper` loads the mounted custom voice in your environment
+(custom voices go in its `--data-dir`; this is documented piper behaviour).
 
-| | |
-|---|---|
-| lexical stress | **~74% of word forms wrong** — espeak cannot derive Slovene stress from spelling |
-| untrained symbols | **~6.5% of phoneme tokens** the model has never produced |
-| worst offender | `r` — espeak's trill where the model trained the tap `ɾ`, and Slovene is full of /r/ |
-| also | `h` for `x`, `ˌ` secondary stress, `ɲ` for `nj` |
-| plus | representation drift — espeak writes `ts` where the model trained the single `ʦ` |
-
-Those symbols are in piper's id map, so they are not dropped. They get an
-embedding that learned nothing, and come out as an artefact. **Nothing warns you
-at runtime.** It will sound fluent and wrong.
-
-The generator is shipped, but the generated config is **not** included in the
-release bundle. Producing it should be a deliberate act, not something found
-pre-made and used by accident.
-
-### This may not stay necessary
-
-Upstream piper has added `PhonemeType.LITHUANIAN`, documented as *"espeak-ng IPA
-+ pitch accent dictionary"* — architecturally the same idea as this voice. A
-`SLOVENE` type upstream would make the voice work correctly in any piper-based
-stack, with no server from here and no degradation. See roadmap 3.4.
-
----
+**Loading the voice into stock piper WITHOUT the proxy** still works but is
+wrong: `tools/make_espeak_config.py` lets stock piper load it, and it will then
+phonemize with espeak and mis-stress ~74% of words. Only the proxy path feeds it
+lexicon phonemes.
 
 ## Home Assistant
 
-Two options. The Wyoming server is the better one because it is the only way to
-get the voice pronounced correctly.
-
-### Option A — Wyoming (recommended, both STT and TTS)
-
 ```bash
 scripts/fetch-models.sh
-docker compose up -d wyoming
+docker compose up -d
 ```
 
-Then in Home Assistant: **Settings → Devices & Services → Add Integration →
-Wyoming Protocol**, host = the machine running it, port = `10200`.
+That brings up three services — official whisper, official piper, and the tiny
+phonemizer proxy. Then in Home Assistant: **Settings → Devices & Services → Add
+Integration → Wyoming Protocol**, twice:
 
-Both a speech-to-text and a text-to-speech service appear, and can be selected
-in any Assist pipeline under **Settings → Voice assistants**.
+| add a Wyoming service at | gives you |
+|---|---|
+| `host:10300` | Slovene speech-to-text |
+| `host:10200` | Slovene text-to-speech |
 
-Run only one half if you want:
+Both appear for any Assist pipeline under **Settings → Voice assistants**.
 
-```bash
-python3 serve/wyoming_server.py --uri tcp://0.0.0.0:10200 --no-stt   # voice only
-python3 serve/wyoming_server.py --uri tcp://0.0.0.0:10200 --no-tts   # recogniser only
-```
+### STT alone, via the existing Whisper add-on
 
-### Option B — the existing add-ons
+If you already run the **Whisper** add-on (wyoming-faster-whisper), skip our
+whisper container entirely: drop `slovene-whisper-ct2/` into its model directory
+and select it as a custom model. Fully supported — it is a normal Whisper model.
 
-If you already run the **Whisper** add-on (wyoming-faster-whisper), you can
-point it at this model instead of converting anything: place
-`slovene-whisper-ct2/` in its model directory and select it as a custom model.
-That is a fully supported path — the recogniser is a normal Whisper model.
+For TTS, the **Piper add-on cannot** serve this voice on its own: it has no
+Slovene lexicon phonemizer. Use the `docker compose` stack above, whose piper
+container *is* the official piper — just fronted by the phonemizer proxy.
 
-For TTS, the **Piper** add-on is *not* a supported path for this voice. See the
-warning at the top.
+### Single-container alternative
+
+If you would rather run one container than three, `serve/openai_api.py` (the
+`openai` compose profile) and `serve/wyoming_server.py` are self-contained
+servers that do everything in-process with no official containers. Heavier, but
+one moving part. The light stack above is the recommended default.
 
 ### A note on Assist pipelines
 

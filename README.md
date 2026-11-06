@@ -18,8 +18,9 @@ weights, released under terms compatible with the data they came from.
 ordinary Whisper model — point faster-whisper, WhisperX, Speaches or the Home
 Assistant Whisper add-on at it and it works. For the voice, and for Home
 Assistant's Wyoming protocol, this repository ships the servers:
-`docker compose up` gives you an OpenAI-compatible endpoint on `:8080` and a
-Wyoming endpoint on `:10200`. See [Deploying](#deploying).
+Both run in **official containers** — the only custom code is a ~90-line
+phonemizer proxy. `docker compose up -d` gives Home Assistant a Slovene STT
+service on `:10300` and TTS on `:10200`. See [Deploying](#deploying).
 
 ---
 
@@ -297,10 +298,11 @@ are Release assets, because the recogniser alone is 1.5 GB and the lexicon is
 ```
 tts/slovene_voice/   the TTS runtime: text -> phonemes -> ids -> audio
 stt/transcribe.py    a minimal recogniser example
-serve/openai_api.py  OpenAI-compatible API -> Open WebUI, LibreChat, ...
-serve/wyoming_server.py   Wyoming protocol -> Home Assistant
-Dockerfile           }  docker compose up api      (HTTP, port 8080)
-docker-compose.yml   }  docker compose up wyoming  (HA, port 10200)
+serve/wyoming_phonemize_proxy.py  the ONLY custom server: text -> [[ipa]] -> piper
+Dockerfile.proxy     the tiny image for that proxy (no onnxruntime/GPU)
+docker-compose.yml   official whisper + official piper + the proxy
+serve/openai_api.py  optional all-in-one OpenAI API (Open WebUI, LibreChat)
+serve/wyoming_server.py   optional single-container Wyoming server
 scripts/             fetch the weights from the Release
 tools/build_portable.py   rebuild the release bundle (reference host only)
 tools/check_lexicon.py    validate a lexicon against the voice's trained symbols
@@ -342,43 +344,30 @@ or a stock `openedai-speech` container — cannot serve this voice.
 
 ## Deploying
 
-Full guide: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
-
 ```bash
 scripts/fetch-models.sh
-docker compose up -d api        # OpenAI-compatible API on :8080
-docker compose up -d wyoming    # Wyoming for Home Assistant on :10200
+docker compose up -d
 ```
 
-**Home Assistant** — add the Wyoming integration pointing at port 10200; a
-Slovene STT and a Slovene TTS service appear for Assist pipelines.
+That starts three services: the **official** `wyoming-whisper` (STT), the
+**official** `wyoming-piper` (TTS synthesis), and one tiny proxy that does the
+Slovene lexicon phonemization. Add two Wyoming integrations in Home Assistant —
+`host:10300` for STT, `host:10200` for TTS.
 
-**Open WebUI** — Settings → Audio, set both engines to OpenAI with base URL
-`http://<host>:8080/v1`, models `slovene-stt` and `slovene-tts`.
+**STT needs nothing custom at all** — it is an ordinary CTranslate2 Whisper
+model; `docker compose` just mounts it into the official container, or point your
+existing Whisper add-on at `models/slovene-whisper-ct2/`.
 
-**Any Whisper framework** — the recogniser is an ordinary CTranslate2 Whisper
-model. faster-whisper, WhisperX, Speaches and the Home Assistant Whisper add-on
-all take it as-is; a LoRA adapter is published for `transformers`/PEFT.
+**TTS** uses the official piper for synthesis; the proxy exists only because no
+TTS server ships a Slovene lexicon phonemizer. It converts text to piper's
+`[[ raw phoneme ]]` form — verified byte-identical to a built-in phonemizer — so
+official piper renders it correctly. When a Slovene phoneme type lands upstream
+in piper, even the proxy goes away.
 
-**The recogniser needs no server from here at all.** Mount the CTranslate2
-directory into the official Whisper container and point `--model` at it:
+For Open WebUI / an OpenAI audio API, `docker compose --profile openai up -d`
+runs a single self-contained server on `:8080` instead.
 
-```bash
-docker run -it -p 10300:10300 -v ./data:/data \
-  -v $PWD/models/slovene-whisper-ct2:/models/slovene:ro \
-  rhasspy/wyoming-whisper --data-dir /data --model /models/slovene --language sl
-```
-
-> **The voice is different.** Its config declares `"phoneme_type": "slovene"`,
-> which upstream piper does not know, so stock piper and the Home Assistant
-> Piper add-on **refuse to load it** by default.
->
-> `tools/make_espeak_config.py` produces a config they will accept, if a
-> degraded voice in your existing stack beats adding a container. The cost is
-> measured: **~74% of word forms mis-stressed** and **~6.5% of phoneme tokens
-> rendered as symbols the model never trained**, notably every `/r/`. Nothing
-> warns you at runtime — it sounds fluent and wrong. For correct pronunciation
-> use `serve/`.
+Full guide, including the single-container alternative: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
 
 ---
 

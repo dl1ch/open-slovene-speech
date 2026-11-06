@@ -100,6 +100,24 @@ if [ -d "$DEST/Slovene_denormalizator-1.0" ]; then
   echo "    denormaliser needs: pip install nltk flask flask_restx"
 fi
 
+# Set up the voice for the OFFICIAL piper container: the ONNX plus an espeak-mode
+# config, so piper takes its raw-phoneme branch for the [[ ]] input the proxy
+# sends. This is what lets the light stack use official wyoming-piper.
+if [ -d "$DEST/slovene-voice" ]; then
+  _tools="$(cd "$(dirname "$0")/.." && pwd)/tools"
+  mkdir -p "$DEST/piper-voice"
+  cp "$DEST/slovene-voice/model/sl_SI-artur-medium.onnx" "$DEST/piper-voice/"
+  if command -v python3 >/dev/null 2>&1 && [ -f "$_tools/make_espeak_config.py" ]; then
+    python3 "$_tools/make_espeak_config.py" \
+      "$DEST/slovene-voice/model/sl_SI-artur-medium.onnx.json" >/dev/null
+    cp "$DEST/slovene-voice/model/sl_SI-artur-medium.espeak.onnx.json" \
+       "$DEST/piper-voice/sl_SI-artur-medium.onnx.json"
+    echo "    piper voice ready in $DEST/piper-voice (espeak/raw-phoneme mode)"
+  else
+    echo "    WARNING: could not build the piper espeak config (need python3 + tools/)" >&2
+  fi
+fi
+
 cat <<EOF
 
 Done. Models are in: $DEST

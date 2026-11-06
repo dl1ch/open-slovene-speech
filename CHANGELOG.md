@@ -8,6 +8,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 First public release.
 
 ### Added
+- Light serving stack: the models now run in **official** containers
+  (`rhasspy/wyoming-whisper`, `rhasspy/wyoming-piper`), with the only custom
+  code a ~90-line phonemizer proxy (`serve/wyoming_phonemize_proxy.py`,
+  `Dockerfile.proxy`). It turns Slovene text into piper's `[[ raw phoneme ]]`
+  form — verified byte-identical to the built-in phonemizer — so official piper
+  renders the voice correctly. STT needs no custom code at all.
 - Slovene TTS voice (Piper/VITS, 22.05 kHz, epoch 729) as a portable,
   piper-free bundle that runs on CPU anywhere Python and onnxruntime run.
 - Slovene speech recognition: whisper-large-v3 + LoRA fine-tuned on 853 h of

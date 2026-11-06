@@ -1,44 +1,50 @@
-# Two ways to serve these models. Run either, or both.
+# The light stack: official containers do all the heavy lifting; the only custom
+# piece is a tiny phonemizer proxy. Fetch the models first: scripts/fetch-models.sh
 #
-#   docker compose up api        OpenAI-compatible  -> Open WebUI, LibreChat, ...
-#   docker compose up wyoming    Wyoming protocol   -> Home Assistant
-#
-# Fetch the weights first:  scripts/fetch-models.sh
+#   docker compose up -d                 Home Assistant stack (STT + TTS, Wyoming)
+#   docker compose --profile openai up   OpenAI-compatible all-in-one (Open WebUI)
 services:
-  api:
-    build: .
-    ports: ["8080:8080"]
-    volumes: ["./models:/models:ro"]
-    environment:
-      SLOVENE_STT_DEVICE: cpu
-      SLOVENE_STT_COMPUTE: int8
+
+  # ── Speech to text ─ official container, our model mounted. No custom code. ──
+  whisper:
+    image: rhasspy/wyoming-whisper
+    command: >
+      --model /models/slovene-whisper-ct2 --language sl
+      --data-dir /data --uri tcp://0.0.0.0:10300
+    volumes:
+      - ./models/slovene-whisper-ct2:/models/slovene-whisper-ct2:ro
+      - whisper-data:/data
+    ports: ["10300:10300"]
     restart: unless-stopped
 
-  wyoming:
-    build: .
-    command: ["python3", "serve/wyoming_server.py", "--uri", "tcp://0.0.0.0:10200"]
+  # ── TTS synthesis ─ official piper, our voice in raw-phoneme (espeak) mode. ──
+  piper:
+    image: rhasspy/wyoming-piper
+    command: >
+      --voice sl_SI-artur-medium --data-dir /voice --uri tcp://0.0.0.0:10200
+    volumes:
+      - ./models/piper-voice:/voice:ro
+    restart: unless-stopped
+
+  # ── TTS phonemization ─ the one custom piece. Lexicon → [[raw]] → piper. ──
+  tts:
+    build: { context: ., dockerfile: Dockerfile.proxy }
+    command: --uri tcp://0.0.0.0:10200 --piper-uri tcp://piper:10200
+    volumes:
+      - ./models/slovene-voice/lexicon:/lexicon:ro
     ports: ["10200:10200"]
-    volumes: ["./models:/models:ro"]
-    environment:
-      SLOVENE_STT_DEVICE: cpu
-      SLOVENE_STT_COMPUTE: int8
+    depends_on: [piper]
     restart: unless-stopped
 
-  # Same as `api`, on a CUDA host. Needs the NVIDIA container toolkit and a GPU
-  # of compute capability >= 7.0 for int8_float16.
-  api-gpu:
-    profiles: ["gpu"]
-    build:
-      context: .
-      args:
-        BASE: nvidia/cuda:12.6.0-cudnn-runtime-ubuntu24.04
-    ports: ["8080:8080"]
+  # ── Optional: OpenAI-compatible all-in-one for Open WebUI / LibreChat. ──
+  # A single self-contained server (our onnxruntime synth + faster-whisper).
+  # Heavier, but one container and speaks /v1/audio/*.
+  openai:
+    profiles: ["openai"]
+    build: { context: ., dockerfile: Dockerfile }
     volumes: ["./models:/models:ro"]
-    environment:
-      SLOVENE_STT_DEVICE: cuda
-      SLOVENE_STT_COMPUTE: int8_float16
-    deploy:
-      resources:
-        reservations:
-          devices: [{capabilities: ["gpu"]}]
+    ports: ["8080:8080"]
     restart: unless-stopped
+
+volumes:
+  whisper-data:
