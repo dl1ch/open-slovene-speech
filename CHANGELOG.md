@@ -28,6 +28,10 @@ First public release.
 - Model cards for both models, including their out-of-scope uses.
 - Training documentation covering three data bugs that cost two training days
   and were invisible in the loss curve.
-- A Wyoming phonemizer proxy that fronts official wyoming-piper, so Home
-  Assistant discovers the voice as an Assist-pipeline service (STT is the
-  official wyoming-whisper container, nothing custom).
+- An OpenAI-compatible server (`/v1/audio/speech`, `/v1/audio/transcriptions`)
+  serving STT and TTS to every OpenAI-audio-API client — Open WebUI, Hermes,
+  LibreChat, and Home Assistant via the sfortis/openai_tts and
+  NickM-27/hass_local_openai_stt HACS integrations. Published to GHCR by CI, so
+  deployers pull a prebuilt image.
+- An optional HA-native Wyoming stack (official whisper + official piper + a tiny
+  phonemizer proxy) for those who prefer Wyoming over HACS.

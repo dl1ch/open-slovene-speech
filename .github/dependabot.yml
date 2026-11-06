@@ -21,7 +21,7 @@ updates:
     open-pull-requests-limit: 3
     labels: ["dependencies"]
 
-  # /serve holds just the proxy's one dependency (wyoming).
+  # /serve is the OpenAI server's stack, pinned by requirements.lock.
   - package-ecosystem: pip
     directory: /serve
     schedule:
